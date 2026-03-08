@@ -1,0 +1,420 @@
+@import "tailwindcss";
+
+
+@theme inline {
+  /* Core backgrounds */
+  --color-terminal-bg: #080d08;
+  --color-terminal-bg-light: #0c130c;
+  --color-surface: #0f180f;
+  --color-surface-hover: #141f14;
+  --color-surface-border: #1c2c1c;
+  --color-surface-border-bright: #243424;
+
+  /* Brand — Neon Green */
+  --color-neon-green: #00ff88;
+  --color-neon-green-dim: #00cc6a;
+  --color-neon-green-glow: rgba(0, 255, 136, 0.12);
+  --color-neon-green-glow-strong: rgba(0, 255, 136, 0.28);
+
+  /* Signal colours */
+  --color-value-orange: #ff9500;
+  --color-value-orange-dim: #cc7700;
+  --color-value-orange-glow: rgba(255, 149, 0, 0.15);
+  --color-risk-red: #ff3b30;
+  --color-risk-red-dim: #cc2f26;
+  --color-risk-red-glow: rgba(255, 59, 48, 0.15);
+  --color-steaming-purple: #bf5af2;
+  --color-steaming-purple-glow: rgba(191, 90, 242, 0.15);
+  --color-social-blue: #1da1f2;
+  --color-social-blue-glow: rgba(29, 161, 242, 0.15);
+  --color-gold: #ffd700;
+
+  /* Text */
+  --color-muted: #5a6e5a;
+  --color-muted-light: #7a8e7a;
+  --color-text-primary: #f0f8f0;
+  --color-text-secondary: #8a9e8a;
+  --color-text-tertiary: #4a5e4a;
+
+  /* Fonts */
+  --font-sans: var(--font-inter, 'Inter', system-ui, -apple-system, sans-serif);
+  --font-mono-data: var(--font-jetbrains-mono, 'JetBrains Mono', 'Fira Code', monospace);
+
+  /* Animations */
+  --animate-fade-in: fade-in 0.35s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+  --animate-pulse-glow: pulse-glow 2.5s ease-in-out infinite;
+  --animate-pulse-glow-orange: pulse-glow-orange 2.5s ease-in-out infinite;
+  --animate-expand: expand 0.3s ease-out;
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-float: float 3s ease-in-out infinite;
+  --animate-number-pop: number-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  --animate-scan: scan 4s linear infinite;
+  --animate-ticker: ticker 0.2s ease-out;
+
+  /* Live odds flashes */
+  --animate-flash-green: flash-green 1s ease-out;
+  --animate-flash-red: flash-red 1s ease-out;
+}
+
+/* ---- Keyframes ---- */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(0, 255, 136, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 22px rgba(0, 255, 136, 0.45), 0 0 40px rgba(0, 255, 136, 0.1);
+  }
+}
+
+@keyframes pulse-glow-orange {
+
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(255, 149, 0, 0.15);
+  }
+
+  50% {
+    box-shadow: 0 0 22px rgba(255, 149, 0, 0.45);
+  }
+}
+
+@keyframes expand {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+
+  to {
+    opacity: 1;
+    max-height: 600px;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes number-pop {
+  0% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(1.08);
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scan {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.04;
+  }
+
+  90% {
+    opacity: 0.04;
+  }
+
+  100% {
+    transform: translateY(100vh);
+    opacity: 0;
+  }
+}
+
+@keyframes ticker {
+  from {
+    transform: translateY(-6px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes signal-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes flash-green {
+  0% {
+    color: var(--color-neon-green);
+    text-shadow: 0 0 15px var(--color-neon-green);
+    transform: scale(1.1);
+  }
+
+  100% {
+    color: inherit;
+    text-shadow: none;
+    transform: scale(1);
+  }
+}
+
+@keyframes flash-red {
+  0% {
+    color: var(--color-risk-red);
+    text-shadow: 0 0 15px var(--color-risk-red);
+    transform: scale(1.1);
+  }
+
+  100% {
+    color: inherit;
+    text-shadow: none;
+    transform: scale(1);
+  }
+}
+
+/* ---- Base ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  background: var(--color-terminal-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-height: 100%;
+  /* Subtle noise texture */
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(0, 255, 136, 0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 100%, rgba(0, 255, 136, 0.02) 0%, transparent 50%);
+}
+
+/* Scanline overlay on body */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ---- Utility classes ---- */
+.font-mono-data {
+  font-family: var(--font-mono-data, 'JetBrains Mono', 'Fira Code', monospace);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.animate-pulse-glow {
+  animation: var(--animate-pulse-glow);
+}
+
+.animate-pulse-glow-orange {
+  animation: var(--animate-pulse-glow-orange);
+}
+
+.animate-shimmer {
+  animation: var(--animate-shimmer);
+}
+
+.animate-float {
+  animation: var(--animate-float);
+}
+
+.animate-number-pop {
+  animation: var(--animate-number-pop);
+}
+
+.animate-scan {
+  animation: var(--animate-scan);
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+.animate-signal-pulse {
+  animation: signal-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-flash-green {
+  animation: var(--animate-flash-green);
+}
+
+.animate-flash-red {
+  animation: var(--animate-flash-red);
+}
+
+/* Shimmer gradient utility */
+.shimmer-bg {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s linear infinite;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(15, 24, 15, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(28, 44, 28, 0.8);
+}
+
+/* Terminal glow text */
+.text-glow-green {
+  text-shadow: 0 0 12px rgba(0, 255, 136, 0.6), 0 0 30px rgba(0, 255, 136, 0.2);
+}
+
+.text-glow-orange {
+  text-shadow: 0 0 12px rgba(255, 149, 0, 0.6);
+}
+
+/* Neon border glow */
+.border-glow-green {
+  box-shadow: 0 0 0 1px rgba(0, 255, 136, 0.3), 0 0 20px rgba(0, 255, 136, 0.08);
+}
+
+.border-glow-orange {
+  box-shadow: 0 0 0 1px rgba(255, 149, 0, 0.3), 0 0 20px rgba(255, 149, 0, 0.08);
+}
+
+.border-glow-red {
+  box-shadow: 0 0 0 1px rgba(255, 59, 48, 0.3), 0 0 20px rgba(255, 59, 48, 0.08);
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-muted);
+}
+
+/* Custom scrollbar class */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-border) transparent;
+}
+
+/* ---- Selection ---- */
+::selection {
+  background: rgba(0, 255, 136, 0.25);
+  color: #ffffff;
+}
+
+/* ---- Input focus ring ---- */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* ---- Tap highlight removal ---- */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
