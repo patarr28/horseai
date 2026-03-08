@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { getCheltenhamFallbackData } from '@/lib/fallback-data';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -73,10 +74,16 @@ export async function GET(request: Request) {
         const allRaces = data.racecards || [];
 
         // Filter to ONLY include Cheltenham races for the Festival app
-        const apiRaces = allRaces.filter((r: any) => {
+        let apiRaces = allRaces.filter((r: any) => {
             const courseName = (r.course_name || r.course || "").toLowerCase();
             return courseName.includes("cheltenham");
         });
+
+        // Use high-fidelity mock data if the API has zero races for this date (e.g. out of free tier range)
+        if (apiRaces.length === 0) {
+            console.log(`[API] Zero live races found. Using AI fallback data for ${date}`);
+            apiRaces = getCheltenhamFallbackData(date);
+        }
 
         // 3. Map to our application's Expected Schema (Race & Horse)
         const mappedRaces = apiRaces.map((apiRace: any, rIdx: number) => {
