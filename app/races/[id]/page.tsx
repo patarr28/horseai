@@ -31,11 +31,25 @@ export default function RacePage({ params }: RacePageProps) {
     useEffect(() => {
         async function fetchRace() {
             try {
-                const res = await fetch('/api/racing');
-                const data = await res.json();
-                if (data && data.data) {
-                    const found = data.data.find((r: any) => r.id === id);
-                    if (found) setRace(found);
+                // We must search across all 4 days of the festival as the race could be on any day
+                const FESTIVAL_DAYS = [
+                    "2026-03-10",
+                    "2026-03-11",
+                    "2026-03-12",
+                    "2026-03-13",
+                ];
+
+                const promises = FESTIVAL_DAYS.map(async (date) => {
+                    const res = await fetch(`/api/racing?date=${date}`);
+                    const data = await res.json();
+                    return data.data || [];
+                });
+
+                const allDaysRaces = (await Promise.all(promises)).flat();
+                const found = allDaysRaces.find((r: any) => r.id === id);
+
+                if (found) {
+                    setRace(found);
                 }
             } catch (error) {
                 console.error("Failed to fetch race:", error);
