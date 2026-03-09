@@ -151,24 +151,25 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={() => setIsDonationOpen(true)}
-                className="rounded px-2.5 py-1 text-[9px] font-bold uppercase text-value-orange border border-value-orange/30 bg-value-orange/5 hover:bg-value-orange/10 transition-all active:scale-95"
+                className="rounded px-2 py-1 text-[8px] font-bold uppercase text-value-orange border border-value-orange/30 bg-value-orange/5 transition-all active:scale-95"
               >
-                Buy Dev a Pint
+                <span className="hidden xs:inline">Buy Dev a Pint</span>
+                <span className="xs:hidden">Support</span>
               </button>
               <button
                 onClick={() => setIsSponsorOpen(true)}
-                className="rounded px-2.5 py-1 text-[9px] font-bold uppercase text-text-primary border border-surface-border bg-surface hover:text-neon-green hover:border-neon-green/30 transition-all active:scale-95"
+                className="rounded px-2 py-1 text-[8px] font-bold uppercase text-text-primary border border-surface-border bg-surface transition-all active:scale-95"
               >
-                Sponsor Us
+                Sponsor
               </button>
               <button
                 onClick={() => setIsSubscribeOpen(true)}
-                className="rounded px-2.5 py-1 text-[9px] font-bold uppercase text-terminal-bg bg-neon-green hover:bg-neon-green/80 transition-all active:scale-95 shadow-[0_0_10px_rgba(0,255,136,0.2)]"
+                className="rounded px-2 py-1 text-[8px] font-bold uppercase text-terminal-bg bg-neon-green transition-all active:scale-95 shadow-[0_0_10px_rgba(0,255,136,0.2)]"
               >
-                Join Email List
+                Join
               </button>
             </div>
           </div>
@@ -304,13 +305,13 @@ export default function HomePage() {
         </div>
 
         {/* ── Day Tabs ── */}
-        <div className="sticky top-[124px] z-40 border-b border-surface-border/50 bg-terminal-bg/96 backdrop-blur-xl">
-          <div className="flex gap-0 px-4">
+        <div className="sticky top-[110px] z-40 border-b border-surface-border/50 bg-terminal-bg/96 backdrop-blur-xl">
+          <div className="flex gap-0 px-4 overflow-x-auto no-scrollbar">
             {schedule.map((day, i) => (
               <button
                 key={day.date}
                 onClick={() => setActiveDay(i)}
-                className={`relative px-4 py-3 text-sm font-semibold transition-all ${activeDay === i
+                className={`relative px-4 py-3 text-xs font-semibold whitespace-nowrap transition-all ${activeDay === i
                   ? "text-neon-green"
                   : "text-muted hover:text-muted-light"
                   }`}

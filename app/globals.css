@@ -3,8 +3,8 @@
 
 @theme inline {
   /* Core backgrounds */
-  --color-terminal-bg: #080d08;
-  --color-terminal-bg-light: #0c130c;
+  --color-terminal-bg: #000000;
+  --color-terminal-bg-light: #050505;
   --color-surface: #0f180f;
   --color-surface-hover: #141f14;
   --color-surface-border: #1c2c1c;
@@ -261,17 +261,14 @@ html {
 }
 
 body {
-  background: var(--color-terminal-bg);
+  background: #000000;
   color: var(--color-text-primary);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-height: 100%;
-  /* Subtle noise texture */
-  background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(0, 255, 136, 0.03) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 100%, rgba(0, 255, 136, 0.02) 0%, transparent 50%);
+  /* Removed gradients for solid black look */
 }
 
 /* Scanline overlay on body */
@@ -398,7 +395,7 @@ body::before {
 }
 
 .section-label-shield {
-  @apply inline-flex items-center gap-2 rounded-full border border-neon-green/20 bg-neon-green/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-neon-green shadow-[0_0_15px_rgba(0,255,136,0.1)];
+  @apply inline-flex items-center gap-2 rounded-full border border-neon-green/20 bg-neon-green/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-neon-green shadow-[0_0_15px_rgba(0, 255, 136, 0.1)];
 }
 
 /* Terminal glow text */

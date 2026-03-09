@@ -106,13 +106,13 @@ export default function RaceCard({ race }: RaceCardProps) {
                 </div>
 
                 {/* Race Header */}
-                <div className="relative z-10 p-4 pb-3">
-                    <div className="mb-2 flex items-center justify-between">
-                        <h3 className="text-base font-bold text-text-primary pr-2 leading-tight">
+                <div className="relative z-10 p-4 pb-2">
+                    <div className="mb-1.5 flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-text-primary pr-2 leading-tight">
                             {race.name}
                         </h3>
                         {race.grade && (
-                            <span className="shrink-0 rounded-md border border-surface-border bg-terminal-bg px-2 py-0.5 text-[10px] font-bold text-muted-light">
+                            <span className="shrink-0 rounded-md border border-surface-border bg-terminal-bg px-1.5 py-0.5 text-[9px] font-bold text-muted-light">
                                 {race.grade}
                             </span>
                         )}
@@ -128,16 +128,16 @@ export default function RaceCard({ race }: RaceCardProps) {
                         </div>
 
                         {/* Meta right */}
-                        <div className="shrink-0 text-right space-y-1">
-                            <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-light">
+                        <div className="shrink-0 text-right space-y-0.5">
+                            <div className="flex items-center justify-end gap-1 text-[9px] text-muted-light">
                                 <Clock className="h-3 w-3 text-neon-green/70" />
                                 <span className="font-mono-data font-semibold">{race.distance}</span>
                             </div>
-                            <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-light">
+                            <div className="flex items-center justify-end gap-1 text-[9px] text-muted-light">
                                 <Timer className="h-3 w-3 text-value-orange/70" />
                                 <span className="font-mono-data font-semibold">Avg: {race.averageTime || "TBA"}</span>
                             </div>
-                            <div className="flex items-center justify-end gap-1.5 text-[10px] text-muted-light">
+                            <div className="flex items-center justify-end gap-1 text-[9px] text-muted-light">
                                 <Users className="h-3 w-3 text-white/50" />
                                 <span>{race.runners} Runners</span>
                             </div>
