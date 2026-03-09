@@ -10,12 +10,6 @@ const withPWA = nextPWA({
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@modelcontextprotocol/sdk"],
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
