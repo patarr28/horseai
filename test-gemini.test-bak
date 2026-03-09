@@ -1,0 +1,21 @@
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
+import { generateHorseVerdict, generateChatResponse } from './lib/gemini';
+
+async function runTest() {
+    try {
+        console.log("Testing generateHorseVerdict...");
+        const verdict = await generateHorseVerdict({ id: "1", name: "Test Horse", oddsDecimal: 15.0 });
+        console.log("Verdict Result:", verdict);
+
+        console.log("\nTesting generateChatResponse...");
+        const chat = await generateChatResponse("Are there any good value bets?", "value", []);
+        console.log("Chat Result:", chat);
+
+    } catch (e) {
+        console.error("Test Failed with Error:", e);
+    }
+}
+
+runTest();

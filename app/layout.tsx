@@ -17,14 +17,14 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Festival Whisperer 3.0 | AI Cheltenham Betting Command Centre",
+  title: "HorseRacingAi | Your Data-Driven Racing Assistant",
   description:
-    "The smartest Cheltenham betting assistant — AI insights, market signals, pundit sentiment, and value bets in one command centre.",
+    "The smartest horse racing assistant — Data insights, market signals, predictive models, and real-time odds.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Festival Whisperer",
+    title: "HorseRacingAi",
   },
 };
 

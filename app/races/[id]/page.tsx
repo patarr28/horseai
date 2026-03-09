@@ -15,12 +15,13 @@ import {
     SlidersHorizontal,
 } from "lucide-react";
 import Link from "next/link";
+import ShareButton from "@/components/ShareButton";
 
 interface RacePageProps {
     params: Promise<{ id: string }>;
 }
 
-type Filter = "all" | "banker" | "value" | "social";
+type Filter = "all" | "banker" | "value" | "experts" | "favs" | "longshots" | "ai";
 
 export default function RacePage({ params }: RacePageProps) {
     const { id } = use(params);
@@ -78,18 +79,39 @@ export default function RacePage({ params }: RacePageProps) {
 
     const filterLabels: { key: Filter; label: string }[] = [
         { key: "all", label: "All" },
+        { key: "favs", label: "📉 Favs" },
+        { key: "longshots", label: "🚀 Longshots" },
+        { key: "ai", label: "🧠 Top AI" },
         { key: "banker", label: "🔥 Banker" },
         { key: "value", label: "💎 Value" },
-        { key: "social", label: "🌐 Social" },
+        { key: "experts", label: "🎯 Experts" },
     ];
 
-    const filteredHorses = race.horses.filter((h: any) => {
-        if (activeFilter === "all") return true;
-        if (activeFilter === "banker") return h.signals.some((s: any) => s.type === "BANKER");
-        if (activeFilter === "value") return h.signals.some((s: any) => s.type === "VALUE_BET");
-        if (activeFilter === "social") return h.signals.some((s: any) => s.type === "SOCIAL_BUZZ" || s.type === "STEAMING");
-        return true;
-    });
+    let filteredHorses = [...race.horses];
+
+    switch (activeFilter) {
+        case "banker":
+            filteredHorses = filteredHorses.filter((h: any) => h.signals.some((s: any) => s.type === "BANKER"));
+            break;
+        case "value":
+            filteredHorses = filteredHorses.filter((h: any) => h.signals.some((s: any) => s.type === "VALUE_BET"));
+            break;
+        case "experts":
+            filteredHorses = filteredHorses.filter((h: any) => h.signals.some((s: any) => s.type === "EXPERT_TIP"));
+            break;
+        case "longshots":
+            filteredHorses = filteredHorses.filter((h: any) => h.oddsDecimal >= 10.0).sort((a: any, b: any) => (b.oddsDecimal || 0) - (a.oddsDecimal || 0));
+            break;
+        case "favs":
+            filteredHorses.sort((a: any, b: any) => (a.oddsDecimal || 999) - (b.oddsDecimal || 999));
+            break;
+        case "ai":
+            filteredHorses.sort((a: any, b: any) => (b.aiRating || 0) - (a.aiRating || 0));
+            break;
+        case "all":
+        default:
+            break;
+    }
 
     const topBanker = race.horses.find((h: any) => h.signals.some((s: any) => s.type === "BANKER"));
     const topValue = race.horses.find((h: any) => h.signals.some((s: any) => s.type === "VALUE_BET"));
@@ -110,6 +132,12 @@ export default function RacePage({ params }: RacePageProps) {
                         Back to Races
                     </span>
                 </div>
+                <ShareButton
+                    title={`Race Intel: ${race.name}`}
+                    text={`Check out the pro AI analysis for the ${race.name} and the runners!`}
+                    size="sm"
+                    variant="outline"
+                />
             </header>
 
             {/* Race Hero */}
@@ -230,16 +258,18 @@ export default function RacePage({ params }: RacePageProps) {
 
             {/* Bottom Actions */}
             <div className="sticky bottom-16 mx-4 mt-6 flex gap-3">
-                <button className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-surface-border bg-surface/80 py-3 text-sm font-semibold text-text-primary backdrop-blur-md transition-all hover:border-neon-green/30 active:scale-[0.98]">
-                    <Share2 className="h-4 w-4" />
-                    Share
-                </button>
+                <ShareButton
+                    title={`Race Analysis: ${race.name}`}
+                    text={`I'm checking the ${race.name} on the Investigator Slip. Join the intel hunt!`}
+                    className="flex-1 py-3"
+                    size="lg"
+                />
                 <Link
-                    href="/bets"
+                    href="/investigator-slip"
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-neon-green py-3 text-sm font-bold text-terminal-bg shadow-[0_0_20px_rgba(0,255,136,0.25)] transition-all hover:shadow-[0_0_30px_rgba(0,255,136,0.4)] active:scale-[0.98]"
                 >
                     <Zap className="h-4 w-4" />
-                    Bet Slip
+                    Investigator Slip
                 </Link>
             </div>
         </div>

@@ -35,6 +35,16 @@ export const cheltenhamDay1: Race[] = [
             { type: "STEAMING", label: "Steaming: Gaelic Warrior" },
             { type: "PUNDIT_PICK", label: "Pundit: Sir Gino" },
         ],
+        lastWinners: [
+            { year: 2024, name: "Marine Nationale", fact: "First French-trained winner in 12 years." },
+            { year: 2023, name: "Constitution Hill", fact: "Won by a record-breaking 22 lengths." },
+            { year: 2022, name: "Appreciate It", fact: "Mullins' 50th festival winner." },
+        ],
+        favoriteDetails: { name: "Ballyburn", detail: "Unbeaten in 5. Massive market confidence. Pundit aggregate score: 9.8/10." },
+        notableNewcomers: [
+            { name: "Slade Steel", reason: "Flew home in a recent Grade 2. First trip to Cheltenham." },
+            { name: "Firefox", reason: "Beat the favorite in a bumper last season." },
+        ],
         horses: [
             {
                 id: "h1",
@@ -295,7 +305,7 @@ export const cheltenhamDay1: Race[] = [
                 oddsDecimal: 9.0,
                 aiRating: 70,
                 crowdPickPercent: 10,
-                signals: [{ type: "SOCIAL_BUZZ", label: "SOCIAL BUZZ" }],
+                signals: [{ type: "PUNDIT_PICK", label: "EXPERT BUZZ" }],
                 sentiment: { positive: 62, negative: 18, neutral: 20 },
                 stats: { speed: 85, stamina: "High", trend: "stable" },
                 aiInsight:
@@ -498,7 +508,7 @@ export const cheltenhamDay1: Race[] = [
                 oddsDecimal: 6.0,
                 aiRating: 78,
                 crowdPickPercent: 14,
-                signals: [{ type: "SOCIAL_BUZZ", label: "SOCIAL BUZZ" }],
+                signals: [{ type: "PUNDIT_PICK", label: "EXPERT BUZZ" }],
                 sentiment: { positive: 70, negative: 15, neutral: 15 },
                 stats: { speed: 86, stamina: "High", trend: "stable" },
                 aiInsight:
@@ -590,7 +600,7 @@ export const cheltenhamDay1: Race[] = [
         topSignals: [
             { type: "BANKER", label: "Banker: Corbetts Cross" },
             { type: "VALUE_BET", label: "Value: Stage Star" },
-            { type: "SOCIAL_BUZZ", label: "Social Buzz: 580+ mentions" },
+            { type: "EXPERT_TIP", label: "Expert Pick: Corbetts Cross" },
         ],
         horses: [
             {
@@ -692,11 +702,11 @@ export const cheltenhamDay1: Race[] = [
                 oddsDecimal: 10.0,
                 aiRating: 75,
                 crowdPickPercent: 12,
-                signals: [{ type: "SOCIAL_BUZZ", label: "SOCIAL BUZZ", detail: "580+ mentions" }],
+                signals: [{ type: "EXPERT_TIP", label: "EXPERT PICK" }],
                 sentiment: { positive: 60, negative: 18, neutral: 22 },
                 stats: { speed: 83, stamina: "High", trend: "up" },
                 aiInsight:
-                    "Trending heavily on social media. Still interesting at 9/1 as an each-way proposition.",
+                    "Selected by multiple expert tipsters. Strong each-way claims at 9/1 with improving trajectory.",
                 silkColor: "#3a1a5c",
                 ...profile({
                     aiVerdict:
@@ -787,6 +797,51 @@ export const cheltenhamDay1: Race[] = [
             { type: "PUNDIT_PICK", label: "Pundit: Galopin Des Champs" },
         ],
         horses: [
+            {
+                id: "h1",
+                number: 1,
+                name: "Ballyburn",
+                jockey: "Paul Townend",
+                trainer: "W P Mullins",
+                form: "1-1111",
+                odds: "4/6 FAV",
+                oddsDecimal: 1.67,
+                aiRating: 98,
+                crowdPickPercent: 82,
+                silkColor: "#00FF88",
+                silkUrl: "/images/ballyburn_silk.png",
+                jockeyUrl: "/images/paul_townend.png",
+                plainEnglishInsights: [
+                    "Has never fallen in professional competition.",
+                    "First time going 3 miles, but stamina profile is elite.",
+                    "Highest speed rating in the field over this distance."
+                ],
+                signals: [
+                    { type: "BANKER", label: "Banker: Ballyburn" },
+                    { type: "EXPERT_TIP", label: "Townend's Top Choice" },
+                ],
+                sentiment: { positive: 95, neutral: 4, negative: 1 },
+                stats: {
+                    speed: 96,
+                    stamina: "Elite",
+                    trend: "up",
+                    fastestMileTime: "1:44.2"
+                },
+                aiInsight: "The absolute standout of the week. Metrics across speed and stamina are off the charts. If he jumps clean, he wins.",
+                aiVerdict: "Ballyburn is currently the most statistically powerful horse in training for this grade. His turn of foot is unmatched.",
+                pros: ["Triple Grade 1 Winner", "Unbeaten this season", "Master trainer oversight"],
+                cons: ["Extremely short price", "High pressure expectations"],
+                confidence: 98,
+                age: 6,
+                weight: "11-10",
+                rating: 172,
+                trackRecord: { courseWins: 3, courseRuns: 3, distanceWins: 5, distanceRuns: 6, goingWins: 6, goingRuns: 7 },
+                recentRuns: [
+                    { date: "2026-02-08", course: "Leopardstown", position: "1st", distance: "3m", going: "Yielding", odds: "4/6" },
+                    { date: "2025-12-28", course: "Leopardstown", position: "3rd", distance: "3m", going: "Yielding to Soft", odds: "1/2" },
+                    { date: "2025-11-17", course: "Punchestown", position: "1st", distance: "3m", going: "Soft", odds: "4/7" },
+                ],
+            },
             {
                 id: "h16",
                 number: 1,
@@ -974,11 +1029,11 @@ export const cheltenhamDay1: Race[] = [
                 oddsDecimal: 13.0,
                 aiRating: 72,
                 crowdPickPercent: 8,
-                signals: [{ type: "SOCIAL_BUZZ", label: "SOCIAL BUZZ", detail: "420+ mentions" }],
+                signals: [{ type: "EXPERT_TIP", label: "EXPERT PICK" }],
                 sentiment: { positive: 56, negative: 22, neutral: 22 },
                 stats: { speed: 81, stamina: "Elite", trend: "stable" },
                 aiInsight:
-                    "Social media is buzzing. Paul Nicholls is due a big-race winner. The stamina is there for this trip.",
+                    "Backed by expert tipsters. Paul Nicholls is due a big-race winner. Elite stamina for this trip.",
                 silkColor: "#1a5c5c",
                 ...profile({
                     aiVerdict:

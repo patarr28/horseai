@@ -1,0 +1,20 @@
+async function testAPI() {
+    console.log("Testing Horse Verdict...");
+    const resVerdict = await fetch('http://localhost:3000/api/horse-verdict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: "1", name: "Test Horse", oddsDecimal: 15.0 })
+    });
+    console.log("Verdict Status:", resVerdict.status);
+    console.log("Verdict Body:", await resVerdict.text());
+
+    console.log("\nTesting Chat...");
+    const resChat = await fetch('http://localhost:3000/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: "Test", style: "value" })
+    });
+    console.log("Chat Status:", resChat.status);
+    console.log("Chat Body:", await resChat.text());
+}
+testAPI();

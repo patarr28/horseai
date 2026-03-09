@@ -1,10 +1,10 @@
-# Festival Whisperer — Agent Context Guide
+# HorseRacingAi — Agent Context Guide
 
 > **Purpose**: This document gives future AI agents all the context needed to work on this project effectively.
 
 ## Project Overview
 
-**Festival Whisperer** is a Cheltenham Festival horse racing advice app — a sleek, dark-mode professional betting terminal built with Next.js App Router, Tailwind CSS, and TypeScript.
+**HorseRacingAi** is a Cheltenham Festival horse racing data-assistant app — a sleek, dark-mode professional betting terminal built with Next.js App Router, Tailwind CSS, and TypeScript.
 
 - **Design Language**: Neon green = strong/positive ("Banker"), orange = "Value", red = risk ("Drifting")
 - **Architecture**: Data-first, server-side API routes feed client components
@@ -58,7 +58,7 @@ festival-whisperer/
 │   └── api/
 │       ├── racing/           # GET — Fetches racecards from The Racing API
 │       ├── horse-verdict/    # POST — Gemini AI verdict for a horse
-│       ├── nap-of-the-day/   # GET — Gemini's best bet of the day
+│       ├── nap-of-the-day/   # GET — AI's algorithmic standout of the day
 │       ├── race-preview/     # POST — AI race preview generator
 │       ├── chat/             # POST — AI chat endpoint
 │       ├── odds/             # Odds data
@@ -71,7 +71,7 @@ festival-whisperer/
 │   ├── BottomNav.tsx         # Mobile bottom navigation
 │   ├── ConfidenceGauge.tsx   # Visual confidence meter
 │   ├── ConsultantInsights.tsx # Expert analysis panel
-│   ├── GeminiBestBet.tsx     # Gemini best bet widget
+│   ├── GeminiBestBet.tsx     # Algorithmic standout widget
 │   ├── SignalBadge.tsx       # Signal type badges (BANKER, VALUE, etc.)
 │   └── SmartAccaBuilder.tsx  # Accumulator bet builder
 ├── lib/
@@ -175,7 +175,7 @@ const data = JSON.parse(text);
 ## Gemini AI
 
 - **Library**: `@google/genai`
-- **Utility**: `lib/gemini.ts` — Contains prompt templates for horse verdicts, race previews, NAP of the day, and chat
+- **Utility**: `lib/gemini.ts` — Contains prompt templates for horse verdicts, race previews, algorithmic standouts, and chat
 - **API Routes**: `/api/horse-verdict`, `/api/nap-of-the-day`, `/api/race-preview`, `/api/chat`
 
 ---

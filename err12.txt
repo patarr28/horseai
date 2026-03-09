@@ -1,0 +1,1 @@
+{"status":"success","message":"Gemini-Search successfully scraped and synced expert picks for 2026-03-10","date":"2026-03-10","picksGenerated":1,"tipstersCovered":1,"preview":[{"tipster":"Templegate","horse":"Saratoga","type":"VALUE","reasoning":"An ante-post selection for the Fred Winter Juvenile Hurdle."}]}

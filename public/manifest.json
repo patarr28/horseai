@@ -1,7 +1,7 @@
 {
-    "name": "Festival Whisperer 3.0",
-    "short_name": "Whisperer",
-    "description": "The AI Betting Command Centre for Cheltenham",
+    "name": "HorseRacingAi",
+    "short_name": "HorseRacingAi",
+    "description": "Your Data-Driven Racing Assistant",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0a0f0a",

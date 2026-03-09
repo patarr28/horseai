@@ -40,11 +40,13 @@ const config: Record<
         bg: "bg-value-orange/10",
         border: "border-value-orange/25",
     },
-    SOCIAL_BUZZ: {
-        emoji: "📱",
-        color: "text-value-orange",
-        bg: "bg-value-orange/8",
-        border: "border-value-orange/20",
+    EXPERT_TIP: {
+        emoji: "🎯",
+        color: "text-neon-green",
+        bg: "bg-neon-green/10",
+        border: "border-neon-green/40",
+        glow: "shadow-[0_0_12px_rgba(57,255,20,0.25)]",
+        animate: "animate-pulse-glow",
     },
     DRIFTING: {
         emoji: "📉",
@@ -67,7 +69,7 @@ const config: Record<
 };
 
 export default function SignalBadge({ type, label, size = "md" }: SignalBadgeProps) {
-    const cfg = config[type] ?? config.SOCIAL_BUZZ;
+    const cfg = config[type] ?? config.EXPERT_TIP;
 
     return (
         <span

@@ -13,7 +13,10 @@ import {
     Share2,
     Download,
     Zap,
-    Loader2
+    Loader2,
+    Lightbulb,
+    TrendingUp,
+    ChevronRight
 } from "lucide-react";
 import SmartAccaBuilder from "@/components/SmartAccaBuilder";
 
@@ -27,12 +30,6 @@ interface BetLeg {
     crowdPickPercent?: number;
 }
 
-const demoLegs: BetLeg[] = [
-    { id: "1", horseName: "Ballyburn", race: "13:30 Supreme Novices' Hurdle", odds: "6/4", aiProbability: 62, weaknessLevel: "low", crowdPickPercent: 42 },
-    { id: "2", horseName: "Majborough", race: "14:10 Arkle Challenge Trophy", odds: "Evs", aiProbability: 58, weaknessLevel: "low", crowdPickPercent: 38 },
-    { id: "3", horseName: "Stage Star", race: "14:50 Ultima Handicap Chase", odds: "12/1", aiProbability: 18, weaknessLevel: "high", crowdPickPercent: 9 },
-    { id: "4", horseName: "Galopin Des Champs", race: "15:30 Gold Cup Chase", odds: "Evs", aiProbability: 55, weaknessLevel: "low", crowdPickPercent: 51 },
-];
 
 function oddsToDecimal(odds: string): number {
     if (odds === "Evs") return 2.0;
@@ -42,10 +39,12 @@ function oddsToDecimal(odds: string): number {
 }
 
 export default function BetsPage() {
-    const [legs, setLegs] = useState<BetLeg[]>(demoLegs);
+    const [legs, setLegs] = useState<BetLeg[]>([]);
     const [stake, setStake] = useState("10");
     const [selectedHorse, setSelectedHorse] = useState("");
     const [showPicker, setShowPicker] = useState(false);
+    const [filterDay, setFilterDay] = useState("");
+    const [filterRace, setFilterRace] = useState("");
     const slipRef = useRef<HTMLDivElement>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [aiAnalysis, setAiAnalysis] = useState<{ riskLevel: string; advice: string; safeCashOut: number; letItRide: number } | null>(null);
@@ -54,11 +53,20 @@ export default function BetsPage() {
 
     useEffect(() => {
         async function fetchRaces() {
+            const FESTIVAL_DAYS = ["2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13"];
             try {
-                const res = await fetch("/api/racing");
-                const data = await res.json();
-                const horses = (data.data || []).flatMap((race: any) =>
-                    race.horses.map((h: any) => ({ ...h, raceName: `${race.time} ${race.name}`, raceId: race.id }))
+                const results = await Promise.all(
+                    FESTIVAL_DAYS.map(date => fetch(`/api/racing?date=${date}`).then(r => r.json()))
+                );
+                const horses = results.flatMap(data =>
+                    (data.data || []).flatMap((race: any) =>
+                        (race.horses || []).map((h: any) => ({
+                            ...h,
+                            raceName: `${race.time} ${race.name}`,
+                            raceId: race.id,
+                            raceDate: race.date,
+                        }))
+                    )
                 );
                 setAllHorses(horses);
             } catch (error) {
@@ -101,6 +109,195 @@ export default function BetsPage() {
             triggerHaptic('error');
         }
     };
+
+    // Betting recommendations derived from current slip
+    interface BetRec {
+        type: string;
+        label: string;
+        bets: number;
+        unitStake: number;
+        totalCost: number;
+        potentialReturn: number;
+        why: string;
+        priority: "high" | "medium" | "low";
+    }
+
+    function getBettingRecommendations(legs: BetLeg[], stakeNum: number): BetRec[] {
+        const recs: BetRec[] = [];
+        const n = legs.length;
+        if (n === 0) return recs;
+
+        const decimalOdds = legs.map(l => oddsToDecimal(l.odds));
+        const hasLongshot = decimalOdds.some(o => o >= 6.0);
+        const avgOdds = decimalOdds.reduce((a, b) => a + b, 0) / n;
+        const allShortPriced = decimalOdds.every(o => o < 4.0);
+
+        // Each Way recommendation
+        if (hasLongshot && n >= 1) {
+            const ewLegs = legs.filter((_, i) => decimalOdds[i] >= 6.0);
+            recs.push({
+                type: "EW",
+                label: "Each Way",
+                bets: ewLegs.length * 2,
+                unitStake: stakeNum,
+                totalCost: ewLegs.length * 2 * stakeNum,
+                potentialReturn: ewLegs.reduce((sum, _, i) => {
+                    const placeOdds = 1 + (decimalOdds[legs.indexOf(ewLegs[i])] - 1) / 4;
+                    return sum + stakeNum * placeOdds;
+                }, 0),
+                why: `${ewLegs.map(l => l.horseName).join(", ")} ${ewLegs.length === 1 ? "is" : "are"} priced at ${ewLegs.map((_, i) => decimalOdds[legs.indexOf(ewLegs[i])].toFixed(2) + "x").join(", ")}. At these odds the place part pays 1/4 odds — EW doubles your chances of a return if they finish in the places.`,
+                priority: "high"
+            });
+        }
+
+        // Multiple bet recommendations based on number of legs
+        if (n === 2) {
+            const d = decimalOdds[0] * decimalOdds[1];
+            recs.push({
+                type: "DBL",
+                label: "Double",
+                bets: 1,
+                unitStake: stakeNum,
+                totalCost: stakeNum,
+                potentialReturn: stakeNum * d,
+                why: `A double combines both selections into one bet — both must win. Combined odds of ${d.toFixed(1)}x give a potential £${(stakeNum * d).toFixed(2)} return from £${stakeNum}.`,
+                priority: "high"
+            });
+        }
+
+        if (n === 3) {
+            const [o1, o2, o3] = decimalOdds;
+            const trebleReturn = stakeNum * o1 * o2 * o3;
+            recs.push({
+                type: "TBL",
+                label: "Treble",
+                bets: 1,
+                unitStake: stakeNum,
+                totalCost: stakeNum,
+                potentialReturn: trebleReturn,
+                why: `All three must win. Best for ${allShortPriced ? "short-priced banker selections like yours" : "high-confidence selections"} — combined odds of ${(o1 * o2 * o3).toFixed(1)}x.`,
+                priority: "high"
+            });
+            // Trixie: 3 doubles + 1 treble
+            const trixieReturn = (stakeNum * o1 * o2) + (stakeNum * o1 * o3) + (stakeNum * o2 * o3) + (stakeNum * o1 * o2 * o3);
+            recs.push({
+                type: "TRX",
+                label: "Trixie",
+                bets: 4,
+                unitStake: stakeNum,
+                totalCost: 4 * stakeNum,
+                potentialReturn: trixieReturn,
+                why: `3 doubles + 1 treble (4 bets). You profit if any 2 of 3 win — much safer than a straight treble. Costs £${(4 * stakeNum).toFixed(2)} but pays out even if one selection lets you down.`,
+                priority: avgOdds > 4 ? "high" : "medium"
+            });
+            // Patent: 3 singles + 3 doubles + 1 treble
+            const patentReturn = decimalOdds.reduce((s, o) => s + stakeNum * o, 0)
+                + (stakeNum * o1 * o2) + (stakeNum * o1 * o3) + (stakeNum * o2 * o3)
+                + (stakeNum * o1 * o2 * o3);
+            recs.push({
+                type: "PAT",
+                label: "Patent",
+                bets: 7,
+                unitStake: stakeNum,
+                totalCost: 7 * stakeNum,
+                potentialReturn: patentReturn,
+                why: `3 singles + 3 doubles + 1 treble (7 bets). Every winner returns something — the safest full-cover bet with 3 selections. Even a single winner covers part of the stake.`,
+                priority: "medium"
+            });
+        }
+
+        if (n === 4) {
+            const [o1, o2, o3, o4] = decimalOdds;
+            const fourfoldReturn = stakeNum * o1 * o2 * o3 * o4;
+            recs.push({
+                type: "FOLD",
+                label: "Fourfold Acca",
+                bets: 1,
+                unitStake: stakeNum,
+                totalCost: stakeNum,
+                potentialReturn: fourfoldReturn,
+                why: `All four must win for the maximum return of £${fourfoldReturn.toFixed(2)}. High risk but maximum reward — best if you're very confident in all four.`,
+                priority: allShortPriced ? "high" : "low"
+            });
+            // Yankee: 6 doubles + 4 trebles + 1 fourfold = 11 bets
+            const doubles = [
+                [o1,o2],[o1,o3],[o1,o4],[o2,o3],[o2,o4],[o3,o4]
+            ].reduce((s, [a,b]) => s + stakeNum * a * b, 0);
+            const trebles = [
+                [o1,o2,o3],[o1,o2,o4],[o1,o3,o4],[o2,o3,o4]
+            ].reduce((s, [a,b,c]) => s + stakeNum * a * b * c, 0);
+            const yankeeReturn = doubles + trebles + fourfoldReturn;
+            recs.push({
+                type: "YNK",
+                label: "Yankee",
+                bets: 11,
+                unitStake: stakeNum,
+                totalCost: 11 * stakeNum,
+                potentialReturn: yankeeReturn,
+                why: `6 doubles + 4 trebles + 1 fourfold (11 bets, no singles). Pays if at least 2 win. Costs £${(11 * stakeNum).toFixed(2)} — popular festival bet as it protects against one or two losers.`,
+                priority: "high"
+            });
+            // Lucky 15: Yankee + 4 singles = 15 bets
+            const singles = decimalOdds.reduce((s, o) => s + stakeNum * o, 0);
+            const lucky15Return = singles + doubles + trebles + fourfoldReturn;
+            recs.push({
+                type: "L15",
+                label: "Lucky 15",
+                bets: 15,
+                unitStake: stakeNum,
+                totalCost: 15 * stakeNum,
+                potentialReturn: lucky15Return,
+                why: `4 singles + 6 doubles + 4 trebles + 1 fourfold (15 bets). Every single winner returns something — many bookmakers offer a consolation bonus if only one wins. The classic Cheltenham festival bet for 4 selections.`,
+                priority: "high"
+            });
+        }
+
+        if (n === 5) {
+            recs.push({
+                type: "L31",
+                label: "Lucky 31",
+                bets: 31,
+                unitStake: stakeNum,
+                totalCost: 31 * stakeNum,
+                potentialReturn: 0,
+                why: `5 singles + 10 doubles + 10 trebles + 5 fourfolds + 1 fivefold (31 bets). Full coverage — pays on any single winner and scales up beautifully if more land. Costs £${(31 * stakeNum).toFixed(2)}.`,
+                priority: "medium"
+            });
+            const fivefoldReturn = stakeNum * decimalOdds.reduce((a, b) => a * b, 1);
+            recs.push({
+                type: "FOLD5",
+                label: "Fivefold Acca",
+                bets: 1,
+                unitStake: stakeNum,
+                totalCost: stakeNum,
+                potentialReturn: fivefoldReturn,
+                why: `All 5 must win but the potential return is huge at £${fivefoldReturn.toFixed(2)} from just £${stakeNum}. High risk — combine with a Lucky 31 for safety.`,
+                priority: "low"
+            });
+        }
+
+        if (n >= 6) {
+            const accumReturn = stakeNum * decimalOdds.reduce((a, b) => a * b, 1);
+            recs.push({
+                type: "ACCUM",
+                label: `${n}-fold Accumulator`,
+                bets: 1,
+                unitStake: stakeNum,
+                totalCost: stakeNum,
+                potentialReturn: accumReturn,
+                why: `All ${n} must win. The potential return of £${accumReturn.toFixed(2)} from £${stakeNum} is exceptional — but the probability drops with each leg added. Consider a Lucky 63 (6 selections) for full coverage.`,
+                priority: "medium"
+            });
+        }
+
+        return recs.sort((a, b) => {
+            const p = { high: 0, medium: 1, low: 2 };
+            return p[a.priority] - p[b.priority];
+        });
+    }
+
+    const stakeNum = Math.max(parseFloat(stake) || 10, 0.01);
+    const betRecs = getBettingRecommendations(legs, stakeNum);
 
     const accumProb = legs.reduce((acc, leg) => acc * (leg.aiProbability / 100), 1);
     const combinedProb = Math.round(accumProb * 100 * 100) / 100;
@@ -157,9 +354,9 @@ export default function BetsPage() {
 
             {/* Smart Acca Builder */}
             <div className="mx-4">
-                <SmartAccaBuilder onBuildAcca={(newLegs) => {
+                <SmartAccaBuilder horses={allHorses} onBuildAcca={(newLegs) => {
                     setLegs(newLegs);
-                    setAiAnalysis(null); // reset analysis on new acca
+                    setAiAnalysis(null);
                 }} />
             </div>
 
@@ -193,7 +390,7 @@ export default function BetsPage() {
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 <p className="text-[10px] text-muted truncate">{leg.race}</p>
                                                 {leg.crowdPickPercent !== undefined && (
-                                                    <span className="shrink-0 flex items-center gap-0.5 rounded-full bg-social-blue/10 border border-social-blue/20 px-1.5 py-0.5 text-[9px] font-bold text-social-blue">
+                                                    <span className="shrink-0 flex items-center gap-0.5 rounded-full bg-neon-green/10 border border-neon-green/30 px-1.5 py-0.5 text-[9px] font-bold text-neon-green">
                                                         <Users className="h-2.5 w-2.5" />
                                                         {leg.crowdPickPercent}%
                                                     </span>
@@ -303,6 +500,53 @@ export default function BetsPage() {
                     ))}
                 </div>
             </div>
+
+            {/* ── Betting Recommendations ── */}
+            {legs.length > 0 && betRecs.length > 0 && (
+                <div className="mx-4 mt-4 animate-fade-in">
+                    <div className="flex items-center gap-2 mb-3">
+                        <Lightbulb className="h-4 w-4 text-value-orange" />
+                        <h2 className="text-xs font-bold uppercase tracking-wider text-value-orange">Bet Type Recommendations</h2>
+                    </div>
+                    <div className="space-y-2">
+                        {betRecs.map((rec) => {
+                            const priorityBorder = rec.priority === "high" ? "border-neon-green/25" : rec.priority === "medium" ? "border-value-orange/20" : "border-surface-border";
+                            const priorityBadge = rec.priority === "high" ? "bg-neon-green/15 text-neon-green border-neon-green/30" : rec.priority === "medium" ? "bg-value-orange/15 text-value-orange border-value-orange/30" : "bg-surface-border/40 text-muted-light border-surface-border";
+                            const priorityLeft = rec.priority === "high" ? "bg-neon-green" : rec.priority === "medium" ? "bg-value-orange" : "bg-surface-border";
+                            return (
+                                <div key={rec.type} className={`rounded-2xl border ${priorityBorder} bg-surface overflow-hidden`}>
+                                    <div className={`h-0.5 w-full ${priorityLeft}`} />
+                                    <div className="p-3">
+                                        <div className="flex items-start justify-between gap-3 mb-2">
+                                            <div className="flex items-center gap-2 min-w-0">
+                                                <span className={`shrink-0 rounded-lg border px-2 py-0.5 text-[10px] font-black tracking-wider ${priorityBadge}`}>
+                                                    {rec.type}
+                                                </span>
+                                                <span className="text-sm font-bold text-text-primary">{rec.label}</span>
+                                            </div>
+                                            <div className="text-right shrink-0">
+                                                <p className="text-[9px] text-muted uppercase tracking-wider">{rec.bets} bet{rec.bets > 1 ? "s" : ""} @ £{rec.unitStake}</p>
+                                                <p className="font-mono-data text-xs font-bold text-text-primary">Cost: £{rec.totalCost.toFixed(2)}</p>
+                                            </div>
+                                        </div>
+                                        <p className="text-[11px] leading-relaxed text-text-secondary mb-2">{rec.why}</p>
+                                        {rec.potentialReturn > 0 && (
+                                            <div className="flex items-center justify-between rounded-xl bg-terminal-bg border border-surface-border px-3 py-2">
+                                                <span className="text-[10px] text-muted-light uppercase tracking-wider">Max Return</span>
+                                                <div className="flex items-center gap-1.5">
+                                                    <TrendingUp className="h-3 w-3 text-neon-green" />
+                                                    <span className="font-mono-data text-sm font-bold text-neon-green">£{rec.potentialReturn.toFixed(2)}</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <p className="mt-2 text-[10px] text-muted text-center">For entertainment only — please gamble responsibly</p>
+                </div>
+            )}
 
             {/* ── AI Analysis Panel ── */}
             {legs.length > 0 && (

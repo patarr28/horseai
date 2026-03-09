@@ -1,0 +1,1 @@
+{"status":"error","message":"Gemini request failed: {\"error\":{\"code\":400,\"message\":\"Tool use with a response mime type: 'application/json' is unsupported\",\"status\":\"INVALID_ARGUMENT\"}}"}

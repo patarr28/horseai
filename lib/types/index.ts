@@ -5,13 +5,21 @@ export type SignalType =
   | "DRIFTING"
   | "OVERHYPED"
   | "PUNDIT_PICK"
-  | "SOCIAL_BUZZ"
+  | "EXPERT_TIP"
   | "MARKET_MOVER";
 
 export interface Signal {
   type: SignalType;
   label: string;
   detail?: string;
+}
+
+export interface TipsterPick {
+  tipsterName: string;
+  publication: string;
+  tipType: 'NAP' | 'NB' | 'EACH_WAY' | 'VALUE' | 'LONGSHOT';
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  reasoning?: string;
 }
 
 export interface Horse {
@@ -23,9 +31,16 @@ export interface Horse {
   form: string;
   odds: string;
   oddsDecimal: number;
+  bestOdds?: {
+    bookmaker: string;
+    fractional: string;
+    decimal: number;
+    url: string;
+  } | null;
   aiRating: number;
   crowdPickPercent: number;
   signals: Signal[];
+  tipsterPicks?: TipsterPick[];
   sentiment: {
     positive: number;
     negative: number;
@@ -35,9 +50,13 @@ export interface Horse {
     speed: number;
     stamina: "Low" | "Medium" | "High" | "Elite";
     trend: "up" | "down" | "stable";
+    fastestMileTime?: string;
   };
   aiInsight: string;
   silkColor: string;
+  silkUrl?: string;
+  jockeyUrl?: string;
+  plainEnglishInsights?: string[];
   // Phase 2: Horse Profile fields
   aiVerdict: string;
   pros: string[];
@@ -79,6 +98,15 @@ export interface Race {
   marketMover?: string;
   punditPick?: string;
   status: "upcoming" | "live" | "result";
+  averageTime?: string;
+  historyFact?: string;
+  runnerFacts?: string[];
+  lookOutFor?: string[];
+  wildCard?: { name: string; reason: string };
+  vitalFacts?: string[]; // Legacy fallback
+  lastWinners?: { year: number; name: string; fact: string }[];
+  favoriteDetails?: { name: string; detail: string };
+  notableNewcomers?: { name: string; reason: string }[];
 }
 
 export interface DaySchedule {

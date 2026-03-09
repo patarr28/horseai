@@ -12,7 +12,10 @@ export async function POST(req: Request) {
             );
         }
 
-        const analysis = await analyzeBetSlip(legs, stake || '10');
+        const rawStake = parseFloat(stake);
+        const safeStake = isNaN(rawStake) || rawStake <= 0 ? 10 : Math.min(rawStake, 100000);
+
+        const analysis = await analyzeBetSlip(legs, String(safeStake));
 
         return NextResponse.json(analysis);
     } catch (error) {

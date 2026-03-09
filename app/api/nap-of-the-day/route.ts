@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-import { ai } from '@/lib/gemini';
+import { ai, GEMINI_MODEL } from '@/lib/gemini';
+import { supabase } from '@/lib/supabase';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const APP_BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
 export async function GET(request: Request) {
     try {
@@ -23,11 +21,17 @@ export async function GET(request: Request) {
 
         if (!cacheRow || !cacheRow.data) {
             console.log("[NAP API] Cache miss, triggering /api/racing fetch");
-            const origin = request.headers.get("origin") || request.headers.get("host") ? `http://${request.headers.get("host")}` : 'http://localhost:3000';
-            const racingRes = await fetch(`${origin}/api/racing?date=${date}`);
-            if (racingRes.ok) {
-                const racingData = await racingRes.json();
-                races = racingData.data || [];
+            // Use hardcoded base URL — never derive from user-supplied headers (SSRF risk)
+            const napAbort = new AbortController();
+            const napTimeout = setTimeout(() => napAbort.abort(), 20000);
+            try {
+                const racingRes = await fetch(`${APP_BASE_URL}/api/racing?date=${date}`, { signal: napAbort.signal });
+                if (racingRes.ok) {
+                    const racingData = await racingRes.json();
+                    races = racingData.data || [];
+                }
+            } finally {
+                clearTimeout(napTimeout);
             }
 
             if (races.length === 0) {
@@ -38,7 +42,7 @@ export async function GET(request: Request) {
         }
 
         // 2. Extract top horses to send to Gemini (to save token space)
-        let topContenders: any[] = [];
+        const topContenders: any[] = [];
         races.forEach((race: any) => {
             if (race.horses) {
                 // Get top 2 horses by AI rating in each race
@@ -60,13 +64,13 @@ export async function GET(request: Request) {
 
         // 3. Prompt Gemini
         const prompt = `
-        You are the "Festival Whisperer", an expert AI horse racing analyst.
+        You are "HorseRacingAi", an expert data-driven racing assistant.
         Review this list of the day's top-rated contenders based on official ratings and form:
         ${JSON.stringify(topContenders)}
 
-        Select exactly ONE horse as the "Nap of the Day" (Best Bet). 
+        Select exactly ONE horse as the "Algorithmic Standout" (Top Rated Data Match).
         Look for a horse with a very high AI rating (Official Rating edge) but decent odds (above 2.0 decimal, ideally 3.0+ for value).
-        
+
         Return a JSON object with this exact structure, nothing else:
         {
            "horseName": "Name of horse",
@@ -77,7 +81,7 @@ export async function GET(request: Request) {
         `;
 
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: GEMINI_MODEL,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -85,8 +89,13 @@ export async function GET(request: Request) {
         });
 
         if (response.text) {
-            const napData = JSON.parse(response.text);
-            return NextResponse.json(napData);
+            try {
+                const napData = JSON.parse(response.text);
+                return NextResponse.json(napData);
+            } catch {
+                console.error("NAP of the Day: failed to parse Gemini JSON:", response.text);
+                return NextResponse.json({ error: 'Failed to parse best bet response' }, { status: 500 });
+            }
         }
 
         throw new Error("Empty response from Gemini");

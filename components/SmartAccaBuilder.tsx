@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Brain, Wand2, Zap, Rocket, Shield } from "lucide-react";
-import { cheltenhamDay1 } from "@/lib/mock-data";
 
 interface BetLeg {
     id: string;
@@ -16,17 +15,16 @@ interface BetLeg {
 
 interface SmartAccaBuilderProps {
     onBuildAcca: (legs: BetLeg[]) => void;
+    horses: any[];
 }
 
 type Profile = "banker" | "value" | "moonshot";
 
-export default function SmartAccaBuilder({ onBuildAcca }: SmartAccaBuilderProps) {
+export default function SmartAccaBuilder({ onBuildAcca, horses }: SmartAccaBuilderProps) {
     const [generating, setGenerating] = useState(false);
     const [profile, setProfile] = useState<Profile>("banker");
 
-    const allHorses = cheltenhamDay1.flatMap((race) =>
-        race.horses.map((h) => ({ ...h, raceName: `${race.time} ${race.name}`, raceId: race.id }))
-    );
+    const allHorses = horses;
 
     const profiles = [
         { id: "banker", icon: Shield, label: "Banker Acca", desc: "Top AI probabilities only", color: "text-neon-green", bg: "bg-neon-green/10", border: "border-neon-green/20" },
@@ -36,25 +34,47 @@ export default function SmartAccaBuilder({ onBuildAcca }: SmartAccaBuilderProps)
 
     const generateAcca = () => {
         setGenerating(true);
-        // Simulate AI thinking time
+        const snapshot = [...allHorses];
         setTimeout(() => {
-            let selectedHorses = [];
+            let selectedHorses: any[] = [];
 
             if (profile === "banker") {
-                selectedHorses = [...allHorses].filter(h => h.confidence >= 75).sort((a, b) => b.confidence - a.confidence).slice(0, 3);
+                // Favorites: short-priced horses (up to ~4/1), pick top 3 by AI rating
+                selectedHorses = snapshot
+                    .filter(h => (h.oddsDecimal ?? 99) <= 5.0)
+                    .sort((a, b) => b.aiRating - a.aiRating)
+                    .slice(0, 3);
+                // Fallback: top 3 by aiRating if not enough short-priced horses
+                if (selectedHorses.length < 2) {
+                    selectedHorses = snapshot.sort((a, b) => b.aiRating - a.aiRating).slice(0, 3);
+                }
             } else if (profile === "value") {
-                selectedHorses = [...allHorses].filter(h => h.confidence >= 50 && h.confidence <= 75).sort((a, b) => b.confidence - a.confidence).slice(0, 3);
+                // Value range: 5/1 to 14/1, sort by aiRating descending
+                selectedHorses = snapshot
+                    .filter(h => (h.oddsDecimal ?? 0) > 5.0 && (h.oddsDecimal ?? 0) <= 15.0)
+                    .sort((a, b) => b.aiRating - a.aiRating)
+                    .slice(0, 3);
+                if (selectedHorses.length < 2) {
+                    selectedHorses = snapshot.sort((a, b) => b.aiRating - a.aiRating).slice(3, 6);
+                }
             } else {
-                selectedHorses = [...allHorses].filter(h => h.confidence < 40).sort(() => 0.5 - Math.random()).slice(0, 4);
+                // Moonshot: big outsiders (16/1+), random shuffle for excitement
+                selectedHorses = snapshot
+                    .filter(h => (h.oddsDecimal ?? 0) > 16.0)
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 4);
+                if (selectedHorses.length < 2) {
+                    selectedHorses = snapshot.sort((a, b) => a.aiRating - b.aiRating).slice(0, 4);
+                }
             }
 
             const newLegs: BetLeg[] = selectedHorses.map(horse => ({
-                id: `leg-${Date.now()}-${horse.id}`,
+                id: `leg-${Date.now()}-${Math.random()}`,
                 horseName: horse.name,
                 race: horse.raceName,
                 odds: horse.odds,
-                aiProbability: Math.round(100 / horse.oddsDecimal),
-                weaknessLevel: horse.confidence >= 70 ? "low" : horse.confidence >= 50 ? "medium" : "high",
+                aiProbability: horse.oddsDecimal > 0 ? Math.round(100 / horse.oddsDecimal) : 10,
+                weaknessLevel: (horse.oddsDecimal ?? 99) <= 5 ? "low" : (horse.oddsDecimal ?? 99) <= 15 ? "medium" : "high",
                 crowdPickPercent: horse.crowdPickPercent,
             }));
 

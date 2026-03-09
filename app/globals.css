@@ -25,8 +25,7 @@
   --color-risk-red-glow: rgba(255, 59, 48, 0.15);
   --color-steaming-purple: #bf5af2;
   --color-steaming-purple-glow: rgba(191, 90, 242, 0.15);
-  --color-social-blue: #1da1f2;
-  --color-social-blue-glow: rgba(29, 161, 242, 0.15);
+
   --color-gold: #ffd700;
 
   /* Text */
@@ -328,6 +327,10 @@ body::before {
   animation: signal-pulse 1.5s ease-in-out infinite;
 }
 
+.animate-signal-buzz {
+  animation: signal-pulse 0.8s ease-in-out infinite;
+}
+
 .animate-flash-green {
   animation: var(--animate-flash-green);
 }
@@ -346,12 +349,56 @@ body::before {
   animation: shimmer 2.5s linear infinite;
 }
 
-/* Glass card */
+/* Glass card - Standard */
 .glass-card {
   background: rgba(15, 24, 15, 0.7);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(28, 44, 28, 0.8);
+}
+
+/* Glass panel - High Tech / Liquid */
+.glass-panel {
+  background: linear-gradient(135deg, rgba(20, 30, 20, 0.75), rgba(10, 15, 10, 0.85));
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(0, 255, 136, 0.1);
+  box-shadow:
+    inset 0 0 20px rgba(0, 255, 136, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel-premium {
+  background: linear-gradient(165deg, rgba(25, 35, 25, 0.8), rgba(5, 10, 5, 0.9));
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    inset 0 8px 16px rgba(255, 255, 255, 0.02),
+    0 12px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* Liquid Mesh Backgrounds */
+.bg-mesh-liquid {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(0, 255, 136, 0.08) 0, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(0, 255, 136, 0.05) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(0, 255, 136, 0.08) 0, transparent 50%);
+}
+
+/* Section Decorators */
+.section-divider {
+  @apply relative h-px w-full bg-gradient-to-r from-transparent via-surface-border-bright to-transparent my-6;
+}
+
+.section-divider::after {
+  content: '';
+  @apply absolute left-1/2 top-1/2 h-1 w-12 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neon-green/40 blur-sm;
+}
+
+.section-label-shield {
+  @apply inline-flex items-center gap-2 rounded-full border border-neon-green/20 bg-neon-green/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-neon-green shadow-[0_0_15px_rgba(0,255,136,0.1)];
 }
 
 /* Terminal glow text */

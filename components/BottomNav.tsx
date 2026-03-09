@@ -16,8 +16,9 @@ export default function BottomNav() {
     const pathname = usePathname();
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-surface-border/60 bg-terminal-bg/96 backdrop-blur-2xl">
-            <div className="mx-auto flex max-w-lg items-center justify-around py-1 pb-safe">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 glass-panel-premium border-t border-white/5 backdrop-blur-3xl overflow-hidden shadow-[0_-10px_30px_rgba(0,0,0,0.4)]">
+            <div className="absolute inset-0 bg-mesh-liquid opacity-20 pointer-events-none" />
+            <div className="relative z-10 mx-auto flex max-w-lg items-center justify-around py-1 pb-safe">
                 {tabs.map((tab) => {
                     const isActive =
                         tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
@@ -42,8 +43,8 @@ export default function BottomNav() {
 
                             <Icon
                                 className={`relative h-5 w-5 transition-all duration-200 ${isActive
-                                        ? "drop-shadow-[0_0_8px_rgba(0,255,136,0.6)] scale-110"
-                                        : ""
+                                    ? "drop-shadow-[0_0_8px_rgba(0,255,136,0.6)] scale-110"
+                                    : ""
                                     }`}
                                 strokeWidth={isActive ? 2.5 : 1.5}
                             />
