@@ -1,8 +1,7 @@
 import { GoogleGenAI } from '@google/genai';
-
 const apiKey = process.env.GEMINI_API_KEY || '';
-export const ai = new GoogleGenAI({ apiKey });
-export const GEMINI_MODEL = 'gemini-2.5-flash';
+export const ai = apiKey ? new GoogleGenAI({ apiKey }) : null as any;
+export const GEMINI_MODEL = 'gemini-2.0-flash'; // Using stable flash
 
 export async function generateHorseVerdict(horseData: any) {
     if (!apiKey) {

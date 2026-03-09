@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { generateChatResponse, analyzeAccaImage } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 import { getExpertPicksByHorse } from '@/lib/tipsters';

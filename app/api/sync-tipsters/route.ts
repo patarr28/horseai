@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { ai, GEMINI_MODEL } from '@/lib/gemini';
 
@@ -181,7 +182,7 @@ Return ONLY valid JSON with this exact structure, no markdown formatting blocks,
             if (newTipErr || !insertedTipsters) {
                 console.error('[sync-tipsters] Failed to auto-create tipsters:', newTipErr?.message);
             } else {
-                insertedTipsters.forEach(t => {
+                insertedTipsters.forEach((t: any) => {
                     tipsterMap.set(t.name.toLowerCase().trim(), t);
                 });
             }

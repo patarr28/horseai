@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 import { ai, GEMINI_MODEL } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
 
