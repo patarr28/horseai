@@ -320,7 +320,7 @@ body::before {
   animation: spin-slow 8s linear infinite;
 }
 
-.animate-signal-pulse {
+.animate-symbol-pulse {
   animation: signal-pulse 1.5s ease-in-out infinite;
 }
 
