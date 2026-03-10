@@ -58,13 +58,13 @@ export default function BetsPage() {
                 const results = await Promise.all(
                     FESTIVAL_DAYS.map(date => fetch(`/api/racing?date=${date}`).then(r => r.json()))
                 );
-                const horses = results.flatMap(data =>
+                const horses = results.flatMap((data, dayIdx) =>
                     (data.data || []).flatMap((race: any) =>
                         (race.horses || []).map((h: any) => ({
                             ...h,
                             raceName: `${race.time} ${race.name}`,
                             raceId: race.id,
-                            raceDate: race.date,
+                            raceDate: FESTIVAL_DAYS[dayIdx],
                         }))
                     )
                 );
@@ -443,32 +443,73 @@ export default function BetsPage() {
                         <Plus className="h-4 w-4" />
                         Add Selection
                     </button>
-                ) : (
-                    <div className="rounded-2xl border border-neon-green/20 bg-surface p-3 space-y-2 animate-fade-in">
-                        <select
-                            value={selectedHorse}
-                            onChange={(e) => setSelectedHorse(e.target.value)}
-                            className="w-full rounded-xl border border-surface-border bg-terminal-bg px-3 py-2 text-sm text-text-primary outline-none focus:border-neon-green/50 transition-colors"
-                        >
-                            <option value="">Select a horse...</option>
-                            {allHorses
-                                .filter((h) => !legs.find((l) => l.horseName === h.name))
-                                .map((h) => (
-                                    <option key={h.id} value={h.id}>
-                                        {h.name} — {h.odds} ({h.raceName})
-                                    </option>
+                ) : (() => {
+                    const DAY_LABELS: Record<string, string> = {
+                        "2026-03-10": "Tue 10 Mar — Day 1",
+                        "2026-03-11": "Wed 11 Mar — Day 2",
+                        "2026-03-12": "Thu 12 Mar — Day 3",
+                        "2026-03-13": "Fri 13 Mar — Day 4",
+                    };
+                    const racesForDay = filterDay
+                        ? [...new Map(
+                            allHorses
+                                .filter(h => h.raceDate === filterDay)
+                                .map(h => [h.raceId, { id: h.raceId, name: h.raceName }])
+                          ).values()]
+                        : [];
+                    const horsesForRace = filterDay && filterRace
+                        ? allHorses.filter(h => h.raceDate === filterDay && h.raceId === filterRace && !legs.find(l => l.horseName === h.name))
+                        : [];
+                    return (
+                        <div className="rounded-2xl border border-neon-green/20 bg-surface p-3 space-y-2 animate-fade-in">
+                            {/* Step 1: Day */}
+                            <select
+                                value={filterDay}
+                                onChange={e => { setFilterDay(e.target.value); setFilterRace(""); setSelectedHorse(""); }}
+                                className="w-full rounded-xl border border-surface-border bg-terminal-bg px-3 py-2 text-sm text-text-primary outline-none focus:border-neon-green/50 transition-colors"
+                            >
+                                <option value="">1. Select a day...</option>
+                                {Object.entries(DAY_LABELS).map(([date, label]) => (
+                                    <option key={date} value={date}>{label}</option>
                                 ))}
-                        </select>
-                        <div className="flex gap-2">
-                            <button onClick={addHorse} disabled={!selectedHorse} className="flex-1 rounded-xl bg-neon-green py-2 text-xs font-bold text-terminal-bg disabled:opacity-30 transition-opacity">
-                                Add
-                            </button>
-                            <button onClick={() => setShowPicker(false)} className="flex-1 rounded-xl border border-surface-border py-2 text-xs font-semibold text-muted-light">
-                                Cancel
-                            </button>
+                            </select>
+                            {/* Step 2: Race */}
+                            {filterDay && (
+                                <select
+                                    value={filterRace}
+                                    onChange={e => { setFilterRace(e.target.value); setSelectedHorse(""); }}
+                                    className="w-full rounded-xl border border-surface-border bg-terminal-bg px-3 py-2 text-sm text-text-primary outline-none focus:border-neon-green/50 transition-colors"
+                                >
+                                    <option value="">2. Select a race...</option>
+                                    {racesForDay.map(race => (
+                                        <option key={race.id} value={race.id}>{race.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                            {/* Step 3: Horse */}
+                            {filterRace && (
+                                <select
+                                    value={selectedHorse}
+                                    onChange={e => setSelectedHorse(e.target.value)}
+                                    className="w-full rounded-xl border border-surface-border bg-terminal-bg px-3 py-2 text-sm text-text-primary outline-none focus:border-neon-green/50 transition-colors"
+                                >
+                                    <option value="">3. Select a horse...</option>
+                                    {horsesForRace.map(h => (
+                                        <option key={h.id} value={h.id}>{h.name} — {h.odds}</option>
+                                    ))}
+                                </select>
+                            )}
+                            <div className="flex gap-2">
+                                <button onClick={addHorse} disabled={!selectedHorse} className="flex-1 rounded-xl bg-neon-green py-2 text-xs font-bold text-terminal-bg disabled:opacity-30 transition-opacity">
+                                    Add
+                                </button>
+                                <button onClick={() => { setShowPicker(false); setFilterDay(""); setFilterRace(""); setSelectedHorse(""); }} className="flex-1 rounded-xl border border-surface-border py-2 text-xs font-semibold text-muted-light">
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
 
             {/* ── Stake Input ── */}
@@ -584,7 +625,9 @@ export default function BetsPage() {
                                         Save Slip
                                     </button>
                                     <a
-                                        href={`whatsapp://send?text=${encodeURIComponent(`🏇 My Cheltenham Bet Slip\n${legs.map((l, i) => `${i + 1}. ${l.horseName} @ ${l.odds}`).join('\n')}\n\n💰 Potential Return: £${potentialReturn} from £${stake}\n\n📲 Festival Whisperer AI`)}`}
+                                        href={`https://wa.me/?text=${encodeURIComponent(`🏇 My Cheltenham Bet Slip\n${legs.map((l, i) => `${i + 1}. ${l.horseName} @ ${l.odds}`).join('\n')}\n\n💰 Potential Return: £${potentialReturn} from £${stake}\n\n📲 Festival Whisperer AI`)}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="flex items-center justify-center gap-1.5 rounded-xl bg-[#25D366]/15 border border-[#25D366]/30 px-3 py-1.5 text-[10px] font-bold text-[#25D366] transition-all hover:bg-[#25D366]/25 active:scale-95"
                                     >
                                         <Share2 className="h-3 w-3" />

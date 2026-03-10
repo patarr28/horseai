@@ -151,31 +151,34 @@ export default function DailyAIOutlook({ races, dayLabel }: DailyAIOutlookProps)
     if (!analytics) return null;
 
     return (
-        <div className="relative z-10 mx-4 mb-4 mt-2 overflow-hidden rounded-xl glass-panel p-4 shadow-xl">
-            <div className="absolute inset-0 bg-mesh-liquid opacity-20 pointer-events-none" />
+        <div className="relative z-10 mx-4 mb-4 mt-2 overflow-hidden rounded-xl glass-water liquid-sheen caustic-spot p-4 shadow-xl">
+            <div className="absolute inset-0 bg-mesh-liquid opacity-25 pointer-events-none" />
             <div className="relative z-10">
                 {/* Ultra Compact Header */}
-                <div className="flex items-center justify-between mb-2 border-b border-surface-border/20 pb-2">
+                <div className="flex items-center justify-between mb-2.5 border-b border-white/[0.06] pb-2.5">
                     <div className="flex items-center gap-2">
-                        <Zap className="h-2.5 w-2.5 text-neon-green animate-pulse" />
+                        <Zap className="h-2.5 w-2.5 text-neon-green animate-pulse drop-shadow-[0_0_4px_rgba(0,255,136,0.8)]" />
                         <h2 className="text-[10px] font-black uppercase tracking-tight text-text-primary">
                             {dayLabel} <span className="text-muted-light font-normal italic">Daily Intel</span>
                         </h2>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 mr-2 px-1.5 py-0.5 rounded bg-surface/40 hover:bg-surface/60 transition-colors cursor-pointer border border-surface-border/30" onClick={() => handleShare(analytics)}>
+                        <button
+                            className="flex items-center gap-1 px-2 py-1 rounded-md bg-surface/50 hover:bg-surface/70 active:scale-95 transition-all border border-surface-border/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                            onClick={() => handleShare(analytics)}
+                        >
                             <Share2 className="h-2.5 w-2.5 text-neon-green" />
                             <span className="text-[7px] font-black uppercase tracking-widest text-text-primary">Send</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <span className="text-[8px] font-bold text-muted-light uppercase tracking-widest leading-none mb-0.5">Grade</span>
+                        </button>
+                        <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-surface/30 border border-surface-border/20">
+                            <span className="text-[8px] font-bold text-muted-light uppercase tracking-widest leading-none">Grade</span>
                             <span className={`text-xs font-black leading-none ${analytics.gradeColor}`}>{analytics.grade}</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Written Summary */}
-                <div className="mb-3 bg-surface/20 rounded-lg p-2 border border-surface-border/30">
+                <div className="mb-3 rounded-lg p-2.5 border border-white/[0.04] bg-black/30 backdrop-blur-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                     <p className="text-[10px] leading-relaxed text-text-secondary">
                         {analytics.summary}
                     </p>
@@ -183,51 +186,51 @@ export default function DailyAIOutlook({ races, dayLabel }: DailyAIOutlookProps)
 
                 {/* Action Grid */}
                 <div className="grid grid-cols-2 gap-2 mb-2">
-                    <div className="rounded-lg border border-neon-green/20 bg-neon-green/5 p-2">
+                    <div className="rounded-lg border border-neon-green/20 bg-neon-green/[0.06] p-2.5 shadow-[inset_0_1px_0_rgba(0,255,136,0.08)]">
                         <span className="text-[8px] font-black uppercase tracking-widest text-neon-green/70 block mb-1">Banker</span>
-                        <h3 className="text-xs font-black uppercase text-white truncate">{analytics.banker?.name}</h3>
-                        <div className="flex justify-between mt-0.5">
-                            <span className="text-[9px] font-bold text-neon-green">{analytics.banker?.odds}</span>
-                            <span className="text-[8px] text-neon-green/40">{analytics.banker?.aiRating}%</span>
+                        <h3 className="text-xs font-black uppercase text-white truncate leading-tight">{analytics.banker?.name}</h3>
+                        <div className="flex justify-between mt-1">
+                            <span className="text-[10px] font-black text-neon-green font-mono-data">{analytics.banker?.odds}</span>
+                            <span className="text-[8px] text-neon-green/50 font-mono-data">{analytics.banker?.aiRating}</span>
                         </div>
                     </div>
-                    <div className="rounded-lg border border-value-orange/20 bg-value-orange/5 p-2">
+                    <div className="rounded-lg border border-value-orange/20 bg-value-orange/[0.06] p-2.5 shadow-[inset_0_1px_0_rgba(255,149,0,0.08)]">
                         <div className="flex justify-between items-start mb-1">
                             <span className="text-[8px] font-black uppercase tracking-widest text-value-orange/70">Best Value</span>
-                            <span className="text-[7px] font-black px-1 rounded bg-value-orange/20 text-value-orange border border-value-orange/30">
+                            <span className="text-[7px] font-black px-1 py-0.5 rounded bg-value-orange/20 text-value-orange border border-value-orange/30">
                                 {analytics.recommendedBetType}
                             </span>
                         </div>
-                        <h3 className="text-xs font-black uppercase text-white truncate">{analytics.valuePlay?.horse.name || "Analysis Pending"}</h3>
-                        <div className="flex justify-between mt-0.5">
-                            <span className="text-[9px] font-bold text-value-orange">{analytics.valuePlay?.horse.odds || "-"}</span>
-                            <span className="text-[8px] text-value-orange/40">
-                                {analytics.isSleeperValue ? "High AI Signal" : `+${analytics.valuePlay?.edge || 0}% Edge`}
+                        <h3 className="text-xs font-black uppercase text-white truncate leading-tight">{analytics.valuePlay?.horse.name || "Pending"}</h3>
+                        <div className="flex justify-between mt-1">
+                            <span className="text-[10px] font-black text-value-orange font-mono-data">{analytics.valuePlay?.horse.odds || "-"}</span>
+                            <span className="text-[8px] text-value-orange/50">
+                                {analytics.isSleeperValue ? "AI Signal" : `+${analytics.valuePlay?.edge || 0}%`}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 {/* Quick Signals */}
-                <div className="space-y-1">
-                    <div className="flex items-center justify-between rounded-md bg-surface/40 px-2 py-1 border border-surface-border/20">
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between rounded-lg bg-surface/30 px-2.5 py-1.5 border border-surface-border/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                         <div className="flex items-center gap-1.5">
                             <Star className="h-3 w-3 text-value-orange" />
-                            <span className="text-[8px] font-bold text-muted-light uppercase">Expert Pick</span>
+                            <span className="text-[8px] font-bold text-muted-light uppercase tracking-wide">Expert Pick</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-white italic">{analytics.expertFave?.name}</span>
-                            <span className="text-[8px] font-mono text-value-orange">{analytics.expertFave?.odds}</span>
+                            <span className="text-[9px] font-black text-white italic truncate max-w-[80px]">{analytics.expertFave?.name}</span>
+                            <span className="text-[9px] font-mono-data font-bold text-value-orange shrink-0">{analytics.expertFave?.odds}</span>
                         </div>
                     </div>
-                    <div className="flex items-center justify-between rounded-md bg-surface/40 px-2 py-1 border border-surface-border/20">
+                    <div className="flex items-center justify-between rounded-lg bg-surface/30 px-2.5 py-1.5 border border-surface-border/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
                         <div className="flex items-center gap-1.5">
                             <Target className="h-3 w-3 text-neon-green" />
-                            <span className="text-[8px] font-bold text-muted-light uppercase tracking-tight">Strong AI Analyse</span>
+                            <span className="text-[8px] font-bold text-muted-light uppercase tracking-wide">AI Analyse</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-[9px] font-black text-white italic">{analytics.systemSignalHorse?.name}</span>
-                            <span className="text-[8px] font-mono text-neon-green">{analytics.systemSignalHorse?.odds}</span>
+                            <span className="text-[9px] font-black text-white italic truncate max-w-[80px]">{analytics.systemSignalHorse?.name}</span>
+                            <span className="text-[9px] font-mono-data font-bold text-neon-green shrink-0">{analytics.systemSignalHorse?.odds}</span>
                         </div>
                     </div>
                 </div>

@@ -31,19 +31,22 @@ export default function HorseRow({ horse }: HorseRowProps) {
     return (
         <div
             className={`overflow-hidden rounded-xl border transition-all duration-300 ${expanded
-                ? "border-neon-green/30 shadow-[0_0_16px_rgba(0,255,136,0.06)]"
-                : "border-surface-border"
+                ? "border-neon-green/25 shadow-[0_0_20px_rgba(0,255,136,0.08),inset_0_1px_0_rgba(0,255,136,0.06)] glass-water"
+                : "border-surface-border/60 bg-surface"
                 }`}
         >
             {/* Main Row — tap expands */}
             <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex w-full items-center gap-3 bg-surface px-3 py-3 text-left transition-colors hover:bg-surface-hover active:scale-[0.99]"
+                className={`flex w-full items-center gap-3 px-3 py-3 text-left min-h-[56px] transition-all duration-200 active:brightness-90 active:scale-[0.99] ${expanded ? "bg-transparent" : "bg-surface hover:bg-surface-hover"}`}
             >
-                {/* Silk circle */}
+                {/* Silk circle — liquid drop shadow */}
                 <div
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
-                    style={{ backgroundColor: horse.silkColor }}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-black text-white"
+                    style={{
+                        backgroundColor: horse.silkColor,
+                        boxShadow: `0 2px 12px ${horse.silkColor}55, 0 0 0 1px rgba(255,255,255,0.1)`,
+                    }}
                 >
                     {horse.number}
                 </div>
@@ -51,57 +54,56 @@ export default function HorseRow({ horse }: HorseRowProps) {
                 {/* Horse name + jockey */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                        <span className="font-semibold text-text-primary truncate text-sm">
+                        <span className="font-bold text-text-primary truncate text-sm leading-tight">
                             {horse.name}
                         </span>
                         {horse.aiRating >= 85 && (
-                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-neon-green animate-pulse" />
+                            <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-neon-green shadow-[0_0_6px_rgba(0,255,136,0.8)] animate-pulse" />
                         )}
                     </div>
-                    {/* Jockey + Trainer mini row */}
-                    <p className="text-[10px] text-muted truncate">
+                    <p className="text-[10px] text-muted truncate mt-0.5">
                         {horse.jockey} · {horse.trainer}
                     </p>
-                    {/* AI Rating + Crowd Pick — PRD requirement */}
-                    <div className="mt-1 flex items-center gap-2">
-                        <span className={`text-[9px] font-bold ${aiRatingColor}`}>
+                    <div className="mt-1.5 flex items-center gap-2">
+                        <span className={`text-[9px] font-black ${aiRatingColor}`}>
                             AI {horse.aiRating}
                         </span>
-                        <span className="text-[9px] text-muted">·</span>
+                        <span className="text-[9px] text-surface-border/80">·</span>
                         <span className="flex items-center gap-0.5 text-[9px] text-muted-light">
                             <Users className="h-2.5 w-2.5" />
                             {horse.crowdPickPercent}%
                         </span>
-                        <span className="text-[9px] text-muted">·</span>
-                        <span className="font-mono-data text-[9px] text-muted-light tracking-wide">
+                        <span className="text-[9px] text-surface-border/80">·</span>
+                        <span className="font-mono-data text-[9px] text-muted-light/70 tracking-wide">
                             {horse.form}
                         </span>
                     </div>
                 </div>
 
-                {/* Odds badge */}
-                <div className={`shrink-0 rounded-lg px-2.5 py-1.5 font-mono-data text-sm tabular-nums ${oddsColor}`}>
+                {/* Odds badge — liquid glass */}
+                <div className={`shrink-0 rounded-lg px-2.5 py-1.5 font-mono-data text-sm font-bold tabular-nums leading-none ${oddsColor} shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]`}>
                     {horse.odds}
                 </div>
 
                 {/* Expand chevron */}
                 <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-muted transition-transform duration-300 ${expanded ? "rotate-180 text-neon-green" : ""
+                    className={`h-4 w-4 shrink-0 transition-all duration-300 ${expanded
+                        ? "rotate-180 text-neon-green drop-shadow-[0_0_4px_rgba(0,255,136,0.6)]"
+                        : "text-muted"
                         }`}
                 />
             </button>
 
-            {/* Signal Badges row — always visible if signals exist */}
+            {/* Signal Badges row */}
             {horse.signals.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 border-t border-surface-border/30 bg-surface/50 px-3 py-2">
+                <div className={`flex flex-wrap gap-1.5 border-t px-3 py-2 ${expanded ? "border-neon-green/10 bg-neon-green/[0.02]" : "border-surface-border/30 bg-surface/50"}`}>
                     {horse.signals.map((signal, i) => (
                         <SignalBadge key={i} type={signal.type} label={signal.label} size="sm" />
                     ))}
-                    {/* Link to full profile */}
                     <Link
                         href={`/horses/${horse.id}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="ml-auto flex items-center gap-1 rounded-full border border-neon-green/20 px-2 py-0.5 text-[9px] font-semibold text-neon-green transition-all hover:bg-neon-green/10"
+                        className="ml-auto flex items-center gap-1 rounded-full border border-neon-green/20 bg-neon-green/5 px-2.5 py-1 text-[9px] font-bold text-neon-green transition-all hover:bg-neon-green/10 active:scale-95 shadow-[inset_0_1px_0_rgba(0,255,136,0.08)]"
                     >
                         Full AI Report →
                     </Link>

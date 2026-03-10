@@ -1,15 +1,7 @@
 "use client";
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { TrendingUp, TrendingDown, Zap } from "lucide-react";
-
-interface Mover {
-    name: string;
-    opening: string;
-    current: string;
-    change: string;
-    trend: "up" | "down";
-}
 
 function formatFraction(dec: number): string {
     const fraction = Math.round((dec - 1) * 8); // round to 1/8 increments
@@ -87,11 +79,11 @@ export default function MarketMovers({ horses = [] }: { horses?: any[] }) {
     return (
         <div className="relative z-10 mx-4 mb-6">
             <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-4 w-4 text-value-orange" />
-                <h3 className="text-xs font-bold uppercase tracking-widest text-text-primary">
+                <Zap className="h-4 w-4 text-value-orange drop-shadow-[0_0_6px_rgba(255,149,0,0.8)] animate-pulse" />
+                <h3 className="text-xs font-black uppercase tracking-widest text-text-primary">
                     Market Movers
                 </h3>
-                <span className="ml-auto flex items-center gap-1 rounded-full bg-value-orange/10 border border-value-orange/20 px-2 py-0.5 text-[8px] font-bold text-value-orange animate-pulse">
+                <span className="ml-auto flex items-center gap-1 rounded-full bg-value-orange/[0.12] border border-value-orange/25 px-2 py-0.5 text-[8px] font-black text-value-orange animate-pulse shadow-[0_0_8px_rgba(255,149,0,0.15),inset_0_1px_0_rgba(255,149,0,0.1)]">
                     LIVE TICKER
                 </span>
             </div>
@@ -100,30 +92,36 @@ export default function MarketMovers({ horses = [] }: { horses?: any[] }) {
                 {movers.map((mover, idx) => (
                     <div
                         key={idx}
-                        className={`relative overflow-hidden rounded-xl glass-panel p-3 transition-all duration-300 hover:scale-[1.02] border-l-2 ${mover.trend === "down" ? "border-l-neon-green" : "border-l-risk-red"}`}
+                        className={`relative overflow-hidden rounded-xl glass-panel liquid-sheen p-3 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border-l-2 ${mover.trend === "down"
+                            ? "border-l-neon-green shadow-[0_0_12px_rgba(0,255,136,0.06),inset_0_1px_0_rgba(0,255,136,0.06)]"
+                            : "border-l-risk-red shadow-[0_0_12px_rgba(255,59,48,0.06),inset_0_1px_0_rgba(255,59,48,0.06)]"
+                        }`}
                     >
-                        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
+                        <div className={`absolute inset-0 bg-gradient-to-br pointer-events-none ${mover.trend === "down" ? "from-neon-green/[0.04] to-transparent" : "from-risk-red/[0.04] to-transparent"}`} />
                         <div className="relative z-10">
                             <div className="flex items-center justify-between gap-1 mb-1.5">
                                 <span className="text-[10px] font-black text-text-primary uppercase tracking-tight truncate">{mover.name}</span>
                                 {mover.trend === "down" ? (
-                                    <div className="p-1 rounded bg-neon-green/10">
+                                    <div className="p-1 rounded-md bg-neon-green/[0.12] border border-neon-green/20 shadow-[inset_0_1px_0_rgba(0,255,136,0.1)]">
                                         <TrendingDown className="h-2.5 w-2.5 text-neon-green" />
                                     </div>
                                 ) : (
-                                    <div className="p-1 rounded bg-risk-red/10">
+                                    <div className="p-1 rounded-md bg-risk-red/[0.12] border border-risk-red/20 shadow-[inset_0_1px_0_rgba(255,59,48,0.1)]">
                                         <TrendingUp className="h-2.5 w-2.5 text-risk-red" />
                                     </div>
                                 )}
                             </div>
                             <div className="flex items-baseline justify-between mt-1">
                                 <div className="flex items-center gap-1">
-                                    <span className={`text-xs font-black font-mono-data ${mover.trend === "down" ? "text-neon-green" : "text-risk-red"}`}>
+                                    <span className={`text-sm font-black font-mono-data ${mover.trend === "down" ? "text-neon-green drop-shadow-[0_0_6px_rgba(0,255,136,0.5)]" : "text-risk-red drop-shadow-[0_0_6px_rgba(255,59,48,0.5)]"}`}>
                                         {mover.current}
                                     </span>
-                                    <span className="text-[8px] text-muted font-bold line-through opacity-50">{mover.opening}</span>
+                                    <span className="text-[8px] text-muted font-bold line-through opacity-40">{mover.opening}</span>
                                 </div>
-                                <span className={`text-[9px] font-black px-1.5 rounded-full ${mover.trend === "down" ? "bg-neon-green/10 text-neon-green" : "bg-risk-red/10 text-risk-red"}`}>
+                                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full border ${mover.trend === "down"
+                                    ? "bg-neon-green/[0.12] border-neon-green/20 text-neon-green shadow-[0_0_6px_rgba(0,255,136,0.15)]"
+                                    : "bg-risk-red/[0.12] border-risk-red/20 text-risk-red shadow-[0_0_6px_rgba(255,59,48,0.15)]"
+                                }`}>
                                     {mover.change}
                                 </span>
                             </div>
