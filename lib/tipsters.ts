@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { TipsterPick } from '@/lib/types';
 
 function getSupabase() {
     return createClient(
@@ -33,6 +34,44 @@ export interface ExpertPick {
     tipster?: Tipster;
 }
 
+/** Raw row from the cheltenham_tips table (AI-extracted live tips) */
+export interface ChelthamTip {
+    id: string;
+    race_date: string;
+    race_time: string | null;
+    race_name: string | null;
+    horse_name: string;
+    tipster_name: string;
+    tip_type: 'Win' | 'Each Way' | 'NAP';
+    created_at: string;
+}
+
+/** Row from the consensus_picks view */
+export interface ConsensusPick {
+    race_date: string;
+    race_time: string | null;
+    race_name: string | null;
+    horse_name: string;
+    consensus_votes: number;
+    tipsters: string[];
+    tip_types: string[];
+    has_nap: boolean;
+    voteStrength?: number; // 0–100, added client-side
+}
+
+/**
+ * Map cheltenham_tips tip_type strings to the internal TipsterPick tipType keys
+ * so the existing color-coding in ConsultantInsights.tsx works correctly.
+ */
+function mapTipType(raw: string): 'NAP' | 'NB' | 'EACH_WAY' | 'VALUE' | 'LONGSHOT' {
+    switch (raw) {
+        case 'NAP': return 'NAP';
+        case 'Each Way': return 'EACH_WAY';
+        case 'Win':
+        default: return 'VALUE';
+    }
+}
+
 /**
  * Fetch all known tipsters
  */
@@ -51,7 +90,7 @@ export async function getTipsters(): Promise<Tipster[]> {
 }
 
 /**
- * Fetch expert picks for a given date, joined with tipster data
+ * Fetch expert picks from the normalised expert_picks table (joined with tipsters).
  */
 export async function getExpertPicksForDate(date: string): Promise<ExpertPick[]> {
     const supabase = getSupabase();
@@ -72,42 +111,110 @@ export async function getExpertPicksForDate(date: string): Promise<ExpertPick[]>
 }
 
 /**
+ * Fetch AI-extracted tips from the cheltenham_tips table.
+ */
+export async function getChelthamTips(date: string): Promise<ChelthamTip[]> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+        .from('cheltenham_tips')
+        .select('*')
+        .eq('race_date', date);
+
+    if (error) {
+        console.error('[Tipsters] Failed to fetch cheltenham_tips:', error.message);
+        return [];
+    }
+    return data || [];
+}
+
+/**
+ * Fetch the consensus_picks view for a given date.
+ * Returns horses sorted by consensus_votes DESC.
+ */
+export async function getConsensusPicks(date: string): Promise<ConsensusPick[]> {
+    const supabase = getSupabase();
+    const { data, error } = await supabase
+        .from('consensus_picks')
+        .select('*')
+        .eq('race_date', date)
+        .order('consensus_votes', { ascending: false });
+
+    if (error) {
+        console.error('[Tipsters] Failed to fetch consensus_picks:', error.message);
+        return [];
+    }
+    return data || [];
+}
+
+/**
  * Get expert picks grouped by horse name for a given race date.
- * Returns a map of horse_name -> { picks, tipsters, score }
- * Score is calculated by summing weighted tip values based on tipster ROI.
+ *
+ * Sources:
+ *  1. expert_picks (normalised, ROI-weighted) — existing table
+ *  2. cheltenham_tips (AI-extracted live web tips) — new table
+ *
+ * Returns a map of lower-case horse_name → {
+ *   picks        – ExpertPick[] from expert_picks (with tipster joins)
+ *   tipsterPicks – TipsterPick[] merged from BOTH sources (ready to attach to Horse)
+ *   tipsterCount – total across both sources
+ *   score        – 0-20 AI rating bonus, weighted by tipster ROI where known
+ *   highestTipType
+ * }
  */
 export async function getExpertPicksByHorse(date: string): Promise<Record<string, {
     picks: ExpertPick[];
+    tipsterPicks: TipsterPick[];
     tipsterCount: number;
-    score: number; // 0-20 bonus points for AI rating
+    score: number;
     highestTipType: string;
 }>> {
-    const supabase = getSupabase();
-    const picks = await getExpertPicksForDate(date);
+    // Fetch both sources in parallel
+    const [expertPicks, chelthamTips] = await Promise.all([
+        getExpertPicksForDate(date),
+        getChelthamTips(date)
+    ]);
 
+    // ── 1. Group expert_picks by horse ─────────────────────────────────────
     const byHorse: Record<string, ExpertPick[]> = {};
-    for (const pick of picks) {
+    for (const pick of expertPicks) {
         const key = pick.horse_name.toLowerCase().trim();
         if (!byHorse[key]) byHorse[key] = [];
         byHorse[key].push(pick);
     }
 
-    const result: Record<string, { picks: ExpertPick[]; tipsterCount: number; score: number; highestTipType: string }> = {};
+    // ── 2. Group cheltenham_tips by horse ──────────────────────────────────
+    const cheltByHorse: Record<string, ChelthamTip[]> = {};
+    for (const tip of chelthamTips) {
+        const key = tip.horse_name.toLowerCase().trim();
+        if (!cheltByHorse[key]) cheltByHorse[key] = [];
+        cheltByHorse[key].push(tip);
+    }
 
-    for (const [horseName, horsePicks] of Object.entries(byHorse)) {
+    // ── 3. Build merged result ─────────────────────────────────────────────
+    const allKeys = new Set([...Object.keys(byHorse), ...Object.keys(cheltByHorse)]);
+    const result: Record<string, {
+        picks: ExpertPick[];
+        tipsterPicks: TipsterPick[];
+        tipsterCount: number;
+        score: number;
+        highestTipType: string;
+    }> = {};
+
+    for (const horseName of allKeys) {
+        const horsePicks = byHorse[horseName] || [];
+        const horseTips = cheltByHorse[horseName] || [];
+
         let score = 0;
         let highestTipType = 'VALUE';
 
+        // Score from normalised expert_picks (ROI-weighted)
         for (const pick of horsePicks) {
             const tipster = pick.tipster;
             const roiWeight = tipster ? Math.min(tipster.roi_percentage / 100, 1.0) : 0.2;
             const winWeight = tipster ? Math.min(tipster.win_rate / 50, 1.0) : 0.5;
 
-            // Base points by tip type
             const tipPoints: Record<string, number> = { NAP: 10, NB: 8, EACH_WAY: 5, VALUE: 5, LONGSHOT: 3 };
             const base = tipPoints[pick.tip_type] || 4;
-
-            // Confidence multiplier
             const confMult: Record<string, number> = { HIGH: 1.5, MEDIUM: 1.0, LOW: 0.6 };
             const conf = confMult[pick.confidence] || 1.0;
 
@@ -117,10 +224,45 @@ export async function getExpertPicksByHorse(date: string): Promise<Record<string
             else if (pick.tip_type === 'NB' && highestTipType !== 'NAP') highestTipType = 'NB';
         }
 
-        // Cap score bonus at 20 points
+        // Score from cheltenham_tips (flat weight — no ROI metadata)
+        for (const tip of horseTips) {
+            const tipPoints: Record<string, number> = { NAP: 10, 'Each Way': 5, Win: 4 };
+            const base = tipPoints[tip.tip_type] || 4;
+            const flatWeight = 0.5; // conservative weight when no ROI data
+            score += base * flatWeight;
+
+            if (tip.tip_type === 'NAP') highestTipType = 'NAP';
+        }
+
+        // ── Merge into TipsterPick[] (used by Horse.tipsterPicks on the frontend) ──
+
+        // From expert_picks
+        const expertTipsterPicks: TipsterPick[] = horsePicks.map(p => ({
+            tipsterName: p.tipster?.name || 'Expert',
+            publication: p.tipster?.publication || '',
+            tipType: p.tip_type,
+            confidence: p.confidence,
+            reasoning: p.reasoning || undefined
+        }));
+
+        // From cheltenham_tips (deduplicate against expert names already included)
+        const expertNames = new Set(expertTipsterPicks.map(p => p.tipsterName.toLowerCase()));
+        const chelthamTipsterPicks: TipsterPick[] = horseTips
+            .filter(t => !expertNames.has(t.tipster_name.toLowerCase()))
+            .map(t => ({
+                tipsterName: t.tipster_name,
+                publication: t.tipster_name,          // no separate publication field
+                tipType: mapTipType(t.tip_type),
+                confidence: 'MEDIUM' as const,
+                reasoning: undefined
+            }));
+
+        const mergedTipsterPicks = [...expertTipsterPicks, ...chelthamTipsterPicks];
+
         result[horseName] = {
             picks: horsePicks,
-            tipsterCount: horsePicks.length,
+            tipsterPicks: mergedTipsterPicks,
+            tipsterCount: mergedTipsterPicks.length,
             score: Math.min(Math.round(score), 20),
             highestTipType
         };
@@ -132,6 +274,7 @@ export async function getExpertPicksByHorse(date: string): Promise<Record<string
 /**
  * Seed today's picks for the festival — called by /api/sync-tipsters
  * Uses horse names from the racecard to intelligently assign picks.
+ * NOTE: This generates placeholder data. For live tips use /api/tips/collect instead.
  */
 export async function seedDailyPicks(date: string, horseNames: string[], raceInfo: { name: string; time: string }[]) {
     const supabase = getSupabase();
@@ -147,10 +290,8 @@ export async function seedDailyPicks(date: string, horseNames: string[], raceInf
 
     const picks: Omit<ExpertPick, 'id'>[] = [];
 
-    // Distribute picks across horses and tipsters deterministically
     for (let i = 0; i < tipsters.length; i++) {
         const tipster = tipsters[i];
-        // Each tipster picks 3-5 horses
         const numPicks = 3 + (i % 3);
         const startIdx = (i * 3) % Math.max(horseNames.length, 1);
 

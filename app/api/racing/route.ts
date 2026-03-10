@@ -81,16 +81,34 @@ export async function GET(request: Request) {
                     horses: (race.horses || []).map((horse: any) => {
                         const horseLookup = (horse.name || "").toLowerCase().trim();
                         const expertData = expertPicksByHorse[horseLookup];
+
+                        // Rebuild the EXPERT_TIP signal with fresh tipster data so
+                        // the count and names reflect the latest cheltenham_tips rows.
+                        let freshSignals = (horse.signals || []).filter((s: any) => s.type !== 'EXPERT_TIP');
+                        if (expertData && expertData.tipsterCount > 0) {
+                            const count = expertData.tipsterCount;
+                            const label = count >= 8
+                                ? `🔥 ${count} TIPSTERS`
+                                : count >= 5 ? `${count} TIPSTERS AGREE`
+                                : count >= 3 ? `${count} EXPERTS AGREE`
+                                : count === 1 ? 'EXPERT TIP' : `${count} EXPERTS`;
+                            const napPicks = expertData.tipsterPicks.filter((p: any) => p.tipType === 'NAP');
+                            const allNames = expertData.tipsterPicks.map((p: any) => p.tipsterName).filter(Boolean);
+                            let tipDetail: string;
+                            if (napPicks.length > 0) {
+                                tipDetail = `NAP: ${napPicks.slice(0, 3).map((p: any) => p.tipsterName).join(', ')}`;
+                            } else {
+                                const shown = allNames.slice(0, 3).join(', ');
+                                tipDetail = allNames.length > 3 ? `${shown} +${allNames.length - 3} more` : shown || 'Expert Pick';
+                            }
+                            freshSignals = [...freshSignals, { type: 'EXPERT_TIP', label, detail: tipDetail }].slice(0, 3);
+                        }
+
                         return {
                             ...horse,
                             odds: typeof horse.oddsDecimal === 'number' ? horse.oddsDecimal.toFixed(2) : horse.odds,
-                            tipsterPicks: expertData?.picks.map((p: any) => ({
-                                tipsterName: p.tipster?.name || 'Unknown',
-                                publication: p.tipster?.publication || '',
-                                tipType: p.tip_type,
-                                confidence: p.confidence,
-                                reasoning: p.reasoning || undefined
-                            })) || []
+                            signals: freshSignals,
+                            tipsterPicks: expertData?.tipsterPicks || []
                         };
                     })
                 }));
@@ -298,26 +316,34 @@ export async function GET(request: Request) {
                         signals.push({ type: "PUNDIT_PICK", label: "TOP RATED", detail: `OR ${or}` });
                     }
 
-                    // Expert tipster signals — replace social buzz entirely
+                    // Expert tipster signals — sourced from both expert_picks AND cheltenham_tips
                     const horseLookup = (runner.horse || "").toLowerCase().trim();
                     const expertData = expertPicksByHorse[horseLookup];
                     if (expertData && expertData.tipsterCount > 0) {
-                        const label = expertData.tipsterCount === 1
-                            ? `EXPERT TIP`
-                            : `${expertData.tipsterCount} EXPERTS AGREE`;
-                        // Build a short summary of who tipped and at what level
-                        const napTipsters = expertData.picks.filter(p => p.tip_type === 'NAP').map(p => p.tipster?.name).filter(Boolean);
-                        const nbTipsters = expertData.picks.filter(p => p.tip_type === 'NB').map(p => p.tipster?.name).filter(Boolean);
+                        const count = expertData.tipsterCount;
+                        const label = count >= 8
+                            ? `🔥 ${count} TIPSTERS`
+                            : count >= 5
+                                ? `${count} TIPSTERS AGREE`
+                                : count >= 3
+                                    ? `${count} EXPERTS AGREE`
+                                    : count === 1
+                                        ? 'EXPERT TIP'
+                                        : `${count} EXPERTS`;
+
+                        // Use merged tipsterPicks (includes cheltenham_tips names) for the detail
+                        const napPicks = expertData.tipsterPicks.filter(p => p.tipType === 'NAP');
+                        const allNames = expertData.tipsterPicks.map(p => p.tipsterName).filter(Boolean);
                         let tipDetail: string;
-                        if (napTipsters.length > 0) {
-                            tipDetail = `NAP: ${napTipsters.slice(0, 2).join(', ')}`;
-                        } else if (nbTipsters.length > 0) {
-                            tipDetail = `NB: ${nbTipsters.slice(0, 2).join(', ')}`;
+                        if (napPicks.length > 0) {
+                            tipDetail = `NAP: ${napPicks.slice(0, 3).map(p => p.tipsterName).join(', ')}`;
                         } else {
-                            const firstName = expertData.picks[0]?.tipster?.name;
-                            tipDetail = firstName ? `Tipped by ${firstName}` : 'Expert Pick';
+                            const shown = allNames.slice(0, 3).join(', ');
+                            tipDetail = allNames.length > 3
+                                ? `${shown} +${allNames.length - 3} more`
+                                : shown || 'Expert Pick';
                         }
-                        signals.push({ type: "EXPERT_TIP", label: label, detail: tipDetail });
+                        signals.push({ type: "EXPERT_TIP", label, detail: tipDetail });
                     }
 
                     // 3. Crowd Pick driven by implied market probability (with slight noise)
@@ -354,13 +380,7 @@ export async function GET(request: Request) {
                         rating: or || 120,
                         trackRecord: { courseWins: 0, courseRuns: 0, distanceWins: 0, distanceRuns: 0, goingWins: 0, goingRuns: 0 },
                         recentRuns: [],
-                        tipsterPicks: expertData?.picks.map(p => ({
-                            tipsterName: p.tipster?.name || 'Unknown',
-                            publication: p.tipster?.publication || '',
-                            tipType: p.tip_type,
-                            confidence: p.confidence,
-                            reasoning: p.reasoning || undefined
-                        })) || []
+                        tipsterPicks: expertData?.tipsterPicks || []
                     };
                 })
             };

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 import { generateChatResponse, analyzeAccaImage } from '@/lib/gemini';
 import { supabase } from '@/lib/supabase';
-import { getExpertPicksByHorse } from '@/lib/tipsters';
+import { getExpertPicksByHorse, getConsensusPicks } from '@/lib/tipsters';
 
 export async function POST(req: Request) {
     try {
@@ -29,15 +29,30 @@ export async function POST(req: Request) {
             return data?.data || [];
         });
 
-        // Also fetch expert picks for today (or the whole festival if possible, but today is most relevant for "roasting")
         const todayStr = new Date().toISOString().split('T')[0];
-        const expertPicks = await getExpertPicksByHorse(todayStr);
 
-        const allRacingData = (await Promise.all(cachePromises)).flat();
+        // Fetch expert picks + live tipster consensus in parallel with race data
+        const [allRacingData, expertPicks, consensusPicks] = await Promise.all([
+            Promise.all(cachePromises).then(r => r.flat()),
+            getExpertPicksByHorse(todayStr),
+            // Consensus picks for today: sorted by vote count, ready for the AI to reference
+            getConsensusPicks(todayStr)
+        ]);
+
+        // Format consensus as a compact summary so Gemini can reference it in answers
+        const consensusSummary = consensusPicks.slice(0, 15).map(c =>
+            `${c.horse_name} (${c.consensus_votes} tip${c.consensus_votes !== 1 ? 's' : ''}${c.has_nap ? ' — NAP' : ''}): ${c.tipsters.slice(0, 3).join(', ')}${c.tipsters.length > 3 ? ` +${c.tipsters.length - 3}` : ''}`
+        );
 
         const context = {
             races: allRacingData,
-            expertPicks: expertPicks
+            expertPicks: expertPicks,
+            // Real-time tipster consensus from cheltenham_tips table
+            tipsterConsensus: {
+                date: todayStr,
+                topPicks: consensusSummary,
+                totalHorsesTipped: consensusPicks.length
+            }
         };
 
         const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
